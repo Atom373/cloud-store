@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: cloud-storage
+  thymeleaf:
+    cache: false
+  redis:
+    host: localhost
+    port: 6379    
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cloudstore
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # Hibernate ddl auto (create, create-drop, validate, update)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

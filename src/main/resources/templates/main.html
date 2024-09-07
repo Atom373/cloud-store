@@ -142,8 +142,28 @@
                     <div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
                         <!-- File item--> 
                         <div class="bg-dark d-flex p-2 rounded-4">
-                            <i class='bx bxs-file-pdf mx-1' style="font-size: 28px;"></i>
+                            <i class='bx bxs-file-pdf mx-1' style="font-size: 28px; color: red;"></i>
                             <span href="#" class="flex-grow-1 mx-1 fs-5"> File 1</span>
+                            <div class="dropdown">
+                                <button class="btn btn-dark d-flex justify-content-center rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class='bx bx-dots-vertical-rounded' ></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
+                                    <li><a class="dropdown-item" href="#"><i class='bx bx-download' style="font-size: 20px;"></i> Download</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class='bx bx-edit-alt' style="font-size: 20px;"></i> Rename</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class='bx bx-share' style="font-size: 20px;"></i> Share</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class='bx bx-info-circle' style="font-size: 20px;"></i> File info</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class='bx bx-star' style="font-size: 20px;"></i> Add to starred</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class='bx bx-trash' style="font-size: 20px;"></i> Move to trash</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-dark d-flex p-2 rounded-4">
+                            <i class='bx bxs-file-doc mx-1' style="font-size: 28px; color: blue;"></i>
+                            <span href="#" class="flex-grow-1 mx-1 fs-5"> File 2</span>
                             <div class="dropdown">
                                 <button class="btn btn-dark d-flex justify-content-center rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class='bx bx-dots-vertical-rounded' ></i>
