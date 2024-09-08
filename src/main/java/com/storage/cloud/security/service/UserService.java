@@ -19,7 +19,9 @@ public class UserService {
 	private final UserRepo userRepo;
 	
 	public boolean isUnique(String username) {
-		return !redisTemplate.opsForSet().isMember(USERNAMES_KEY, username);
+		boolean isMember = redisTemplate.opsForSet().isMember(USERNAMES_KEY, username);
+		System.out.println(username + " is member = " + isMember);
+		return !isMember;
 	}
 
 	public void save(User user) {

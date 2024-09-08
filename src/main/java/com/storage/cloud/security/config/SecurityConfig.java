@@ -26,11 +26,6 @@ public class SecurityConfig {
 	}
 	
 	@Bean
-	public AuthenticationManager configureAuthenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-		return authConfig.getAuthenticationManager();
-	}
-	
-	@Bean
 	public UserDetailsService userDetailsService(UserRepo repo) {
 		return username -> {
 			User user = repo.findByUsername(username);
@@ -47,8 +42,8 @@ public class SecurityConfig {
 					csrf -> csrf.disable() 
 			)
 			.authorizeHttpRequests( requests -> requests
-				//.requestMatchers("/").authenticated()
-				.anyRequest().permitAll()
+				.requestMatchers("/register", "/js/**", "/css/**", "/api/**").permitAll()
+				.anyRequest().authenticated()
 			)
 			.formLogin( form -> form
 				.loginPage("/login")

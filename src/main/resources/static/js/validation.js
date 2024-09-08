@@ -8,6 +8,10 @@ $(document).ready(function () {
 
     $('.invalid-feedback').hide();
     $('.valid-feedback').hide();
+	
+	if ($('#usernameInput').val().length !== 0) {
+		checkUniqueness($('#usernameInput').val());
+	}
 
     $('#usernameInput').on('input', function() {
         var username = $('#usernameInput').val();
@@ -66,7 +70,7 @@ function checkUniqueness(username) {
         type: 'POST',
 		data: { username: username },
         success: function(isUnique) {
-			//console.log("is unique = " + isUnique);
+			console.log("is unique = " + isUnique);
 			if (isUnique) {
 				$('#usernameIsValidMsg').show();
 				$('#tooShortUsernameErrorMsg').hide();

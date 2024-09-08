@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @Table(name="users")
 @RequiredArgsConstructor
 @NoArgsConstructor(force=true, access=AccessLevel.PROTECTED)
+@EqualsAndHashCode
 public class User implements UserDetails {
 
 	private static final long serialVersionUID = 1L;

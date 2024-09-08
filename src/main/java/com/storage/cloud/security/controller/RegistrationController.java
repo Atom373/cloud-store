@@ -1,5 +1,7 @@
 package com.storage.cloud.security.controller;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.storage.cloud.security.controller.payload.RegistrationForm;
 import com.storage.cloud.security.service.RegistrationServiceFacade;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 
@@ -27,8 +30,14 @@ public class RegistrationController {
 	}
 	
 	@PostMapping
-	public String processRegistration(@ModelAttribute RegistrationForm form) {
+	public String processRegistration(@ModelAttribute RegistrationForm form,
+									  HttpServletRequest request) {
 		registrationService.register(form);
+		
+		request.getSession().setAttribute(
+					HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+					SecurityContextHolder.getContext()
+		);
 		return "redirect:/main";
 	}
 }
