@@ -2,8 +2,6 @@ package com.storage.cloud.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -42,7 +40,7 @@ public class SecurityConfig {
 					csrf -> csrf.disable() 
 			)
 			.authorizeHttpRequests( requests -> requests
-				.requestMatchers("/register", "/js/**", "/css/**", "/api/**").permitAll()
+				.requestMatchers("/register", "/js/**", "/css/**").permitAll()
 				.anyRequest().authenticated()
 			)
 			.formLogin( form -> form

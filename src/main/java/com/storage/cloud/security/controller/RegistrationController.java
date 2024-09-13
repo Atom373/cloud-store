@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.storage.cloud.domain.service.StorageService;
 import com.storage.cloud.security.controller.payload.RegistrationForm;
+import com.storage.cloud.security.model.User;
 import com.storage.cloud.security.service.RegistrationServiceFacade;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +23,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RegistrationController {
 	
-	private final RegistrationServiceFacade registrationService; 
+	private final RegistrationServiceFacade registrationService;
+	private final StorageService storageService;
 
 	@GetMapping
 	public String registrationPage(Model model) {
@@ -32,12 +35,13 @@ public class RegistrationController {
 	@PostMapping
 	public String processRegistration(@ModelAttribute RegistrationForm form,
 									  HttpServletRequest request) {
-		registrationService.register(form);
+		User user = registrationService.register(form);
 		
 		request.getSession().setAttribute(
 					HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
 					SecurityContextHolder.getContext()
 		);
+		storageService.createBucketFor(user);
 		return "redirect:/main";
 	}
 }

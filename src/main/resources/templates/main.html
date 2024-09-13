@@ -10,8 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="./script.js"></script>
-  <link href="./style.css" rel="stylesheet">
+  <script src="/js/main.js"></script>
   <title>Cloud store</title>
 </head>
 <body data-bs-theme="dark">
@@ -38,7 +37,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
                           <li>
 	                          <form method="post" th:action="@{/logout}">
-	                          	<button class='btn dropdown-item' type="submit"><i class='bx bx-log-out'></i> Exit</button>
+	                          	<button class='btn dropdown-item ps-1 pe-2' type="submit"><i class='bx bx-log-out'></i> Exit</button>
 	                          </form>
                         </ul>
                     </div>
@@ -65,8 +64,7 @@
         <div class="row">
             <!-- Sidebar -->
             <div class="col-2 d-flex flex-column border-end border-2 vh-100">
-                <!-- Create button dropdown -->
-
+                <!-- Add button dropdown -->
                 <div class="dropdown me-2 d-flex mt-2">
                     <button class="btn btn-secondary d-flex justify-content-start my-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class='bx bx-plus-circle me-1' style="font-size: 28px;"></i> <span class="fs-5">Add</span>
@@ -74,7 +72,12 @@
                     <ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
                       <li><a class="dropdown-item" href="#"><i class='bx bx-folder-plus' style="font-size: 20px;"></i> New Folder</a></li>
                       <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item" href="#"><i class='bx bx-cloud-upload' style="font-size: 20px;"></i> Upload File</a></li>
+                      <li>
+                      	<button class="dropdown-item" id="fileUploadBtn">
+                      		<i class='bx bx-cloud-upload' style="font-size: 20px;"></i> Upload File
+                      	</button>
+                      	<input type="file" class='d-none' id='fileInput'>
+                      </li>
                       <li><a class="dropdown-item" href="#"><i class='bx bx-cloud-upload' style="font-size: 20px;"></i> Upload Folder</a></li>
                     </ul>
                 </div>
@@ -89,7 +92,7 @@
 
                 <a href="#" class="btn btn-dark d-flex justify-content-start my-2">
                     <i class='bx bx-star me-1' style="font-size: 24px;"></i> Starred
-                </button>
+                </a>
 
                 <a href="#" class="btn btn-dark d-flex justify-content-start my-2">
                     <i class='bx bx-trash me-1' style="font-size: 24px;"></i>Trash
@@ -143,12 +146,15 @@
 
                     <!-- Files -->
                     <span class="m-4 fs-5  text-decoration-underline">Files</span>
-                    <div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
-                        <!-- File item--> 
-                        <div class="bg-dark d-flex p-2 rounded-4">
-                            <i class='bx bxs-file-pdf mx-1' style="font-size: 28px; color: red;"></i>
-                            <span href="#" class="flex-grow-1 mx-1 fs-5"> File 1</span>
-                            <div class="dropdown">
+                    <div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="files">
+                    
+                    	<!-- Invisible file item. Used only to create new file items -->
+                    	<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4 d-none">
+                            <i class='bx mx-1' style="font-size: 28px;"></i>
+                            <span class="flex-grow-1 mx-1 fs-5 text-truncate" style='max-width: 212.250px ;'> 
+                            	Filename
+                            </span>
+                            <div class="dropdown d-none">
                                 <button class="btn btn-dark d-flex justify-content-center rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class='bx bx-dots-vertical-rounded' ></i>
                                 </button>
@@ -163,31 +169,35 @@
                                     <li><a class="dropdown-item" href="#"><i class='bx bx-trash' style="font-size: 20px;"></i> Move to trash</a></li>
                                 </ul>
                             </div>
+                            <div class="spinner-border ms-1" role="status" style='height: 1.5rem; width: 1.5rem'></div>
                         </div>
-
-                        <div class="bg-dark d-flex p-2 rounded-4">
-                            <i class='bx bxs-file-doc mx-1' style="font-size: 28px; color: blue;"></i>
-                            <span href="#" class="flex-grow-1 mx-1 fs-5"> File 2</span>
-                            <div class="dropdown">
-                                <button class="btn btn-dark d-flex justify-content-center rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class='bx bx-dots-vertical-rounded' ></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
-                                    <li><a class="dropdown-item" href="#"><i class='bx bx-download' style="font-size: 20px;"></i> Download</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class='bx bx-edit-alt' style="font-size: 20px;"></i> Rename</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class='bx bx-share' style="font-size: 20px;"></i> Share</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class='bx bx-info-circle' style="font-size: 20px;"></i> File info</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class='bx bx-star' style="font-size: 20px;"></i> Add to starred</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class='bx bx-trash' style="font-size: 20px;"></i> Move to trash</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <!-- End of the invisible file item.-->
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Toasts -->
+	
+	<div id="fileUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+    	<div class="d-flex">
+	    	<div class="toast-body d-flex align-items-center">
+		    	<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i> 
+		    	<span>An error occurred while loading the file!</span>
+			</div>
+	    	<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
+	
+	<div id="fileWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+    	<div class="d-flex">
+	    	<div class="toast-body d-flex align-items-center">
+		    	<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i> 
+		    	<span>File was uploaded</span>
+			</div>
+	    	<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
 </body>
 </html>

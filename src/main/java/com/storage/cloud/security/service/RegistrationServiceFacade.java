@@ -18,7 +18,7 @@ public class RegistrationServiceFacade {
 	private final UserService userService;
 	private final PasswordEncoder encoder;
 	
-	public void register(RegistrationForm form) {
+	public User register(RegistrationForm form) {
 		User user = new User(
 				form.username(),
 				encoder.encode(form.password())
@@ -28,5 +28,7 @@ public class RegistrationServiceFacade {
 		// Adding user to the current security context
 		Authentication auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        return user;
 	}
 }
