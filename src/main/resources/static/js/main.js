@@ -9,20 +9,25 @@ const fileIcons = {
 
 $(document).ready(function () {
 	
-	getFilesInfoFromServer();
+	getObjectsInfoFromServer();
+		
+	
+	$("#newFolderBtn").on('click', function() {
+		$("#createFolderModal").modal('show');
+	});
+	
+	$('#createNewFolderBtn').on('click', addNewFolderItem);
 	
 	$('#fileUploadBtn').on('click', function() {
 		$('#fileInput').click();
 	});
 	
-	$('#fileInput').on('change', function(event) {
-		const file = event.target.files[0];
-		
-		addNewFileItem(file);
-	});
+	$('#fileInput').on('change',addNewFileItem);
 });
 
-function addNewFileItem(file) {
+function addNewFileItem(event) {
+	const file = event.target.files[0];
+	
 	var fileItem = $('#fileItem').clone();
 	fileItem.removeAttr('id');
 	
@@ -51,17 +56,27 @@ function addNewFileItem(file) {
 		console.log('Ошибка при отправке файла');
 	}
 	
-	uploadToServer(file, onUploadingSuccess, onUploadingError);
+	uploadFileToServer(file, onUploadingSuccess, onUploadingError);
+	
+	$('#noFilesLabel').addClass("d-none");
 	
 	$('#files').prepend(fileItem);
 }
 
-function getFilesInfoFromServer() {
+function getObjectsInfoFromServer() {
 	$.ajax({
-        url: '/api/file/all', 
+        url: '/api/object/all', 
         type: 'GET',
-        success: function(filesInfo) {
-			for (const file of filesInfo) {
+        success: function(response) {
+			if (response.folders.length ===  0) {
+				$('#noFoldersLabel').removeClass("d-none");
+			}
+			
+			if (response.files.length === 0) {
+				$('#noFilesLabel').removeClass("d-none");
+			}
+			
+			for (const file of response.files) {
 				var fileItem = $('#fileItem').clone();
 				
 				fileItem.removeAttr('id');
@@ -75,6 +90,18 @@ function getFilesInfoFromServer() {
 				
 				$('#files').prepend(fileItem);
 			}
+			for (const folder of response.folders) {
+				var folderItem = $('#folderItem').clone();
+					
+				folderItem.removeAttr('id');
+				folderItem.removeClass("d-none");
+
+				var link = folderItem.find('a').first();
+				link.text(folder.name);
+				link.attr('href', folder.link);
+				
+				$('#folders').prepend(folderItem);
+			}
 		},
       	error: function() {
 			console.log("Error while retrieving the files from server");
@@ -82,7 +109,7 @@ function getFilesInfoFromServer() {
     });
 }
 
-function uploadToServer(file, onUploadingSuccess, onUploadingError) {
+function uploadFileToServer(file, onUploadingSuccess, onUploadingError) {
 	const formData = new FormData();
     formData.append('file', file);
     
@@ -110,4 +137,38 @@ function setUpFileIcon(fileItem, fileExtension) {
 	var icon = fileItem.find('i').first();
 	icon.addClass(iconClass);
 	icon.css('color', iconColor);
+}
+
+function addNewFolderItem() {
+	var foldername = $('#foldernameInput').val();
+	if (foldername.length === 0)
+		return;
+	
+	var folderItem = $('#folderItem').clone();
+	
+	folderItem.removeAttr('id');
+	folderItem.removeClass("d-none");
+
+	var folderLink = folderItem.find('a').first();
+	folderLink.text(foldername);
+	
+	sendCreateFolderRequest(foldername, folderLink);
+	
+	$('#noFoldersLabel').addClass("d-none");
+	
+	$('#folders').prepend(folderItem);
+	
+	$("#createFolderModal").modal('hide');
+}
+
+function sendCreateFolderRequest(foldername, folderLink) {
+	$.ajax({
+        url: '/api/folder', 
+        type: 'POST',
+		data: { foldername: foldername },
+		success: function(pathToCreatedFolder) {
+			folderLink.attr('href', '/main?path=' + pathToCreatedFolder);
+            console.log('Папка создана');
+        }
+    });
 }
