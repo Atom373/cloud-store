@@ -1,21 +1,26 @@
 package com.storage.cloud.domain.service.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.storage.cloud.domain.dto.FileDto;
 import com.storage.cloud.domain.dto.FolderDto;
 import com.storage.cloud.domain.dto.ObjectsDto;
+import com.storage.cloud.domain.service.FileIdEncodingService;
 import com.storage.cloud.domain.service.StorageService;
 import com.storage.cloud.security.model.User;
 
+import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -30,7 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MinioStorageService implements StorageService {
 
-	private final MinioClient client;  
+	private final MinioClient client;
+	private final FileIdEncodingService encodingService;
 	
 	@Override
 	public ObjectsDto getAllObjectsFrom(String dirName, User user) {
@@ -54,7 +60,8 @@ public class MinioStorageService implements StorageService {
 					folders.add(new FolderDto(foldername, linkToFolder));
 				} else if (!relativeName.isEmpty()) {
 					String[] filename = relativeName.split("\\.");
-					files.add(new FileDto(filename[0], filename[1]));
+					String fileId = encodingService.encode(user.getId()+"", objectName);
+					files.add(new FileDto(fileId, filename[0], filename[1]));
 				}
 			} catch (Exception e) {
 				log.error(e.getLocalizedMessage());
@@ -65,6 +72,21 @@ public class MinioStorageService implements StorageService {
 		return new ObjectsDto(files, folders);
 	}
 
+	@Override
+	public Resource getFileResource(String bucket, String objectName) {
+		try {
+			InputStream inputStream = client.getObject(
+	                GetObjectArgs.builder()
+	                        .bucket(bucket)
+	                        .object(objectName)
+	                        .build()
+			);
+			return new InputStreamResource(inputStream);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
+			throw new RuntimeException(e);
+		} 
+	}
 	
 	@Override
 	public void createBucketFor(User user) {

@@ -25,6 +25,54 @@ $(document).ready(function () {
 	$('#fileInput').on('change',addNewFileItem);
 });
 
+function getObjectsInfoFromServer() {
+	$.ajax({
+        url: '/api/object/all', 
+        type: 'GET',
+        success: function(response) {
+			if (response.folders.length ===  0) {
+				$('#noFoldersLabel').removeClass("d-none");
+			}
+			
+			if (response.files.length === 0) {
+				$('#noFilesLabel').removeClass("d-none");
+			}
+			
+			for (const file of response.files) {
+				var fileItem = $('#fileItem').clone();
+				
+				fileItem.removeAttr('id');
+				fileItem.removeClass("d-none");
+				fileItem.find('div.spinner-border').remove();
+				fileItem.find('div.dropdown').removeClass("d-none");
+				
+				fileItem.find('a.download-link').attr('href', '/api/download/file/' + file.id);
+				
+				fileItem.find('span').text(file.name);
+				
+				setUpFileIcon(fileItem, file.extension);
+				
+				$('#files').prepend(fileItem);
+			}
+			for (const folder of response.folders) {
+				var folderItem = $('#folderItem').clone();
+					
+				folderItem.removeAttr('id');
+				folderItem.removeClass("d-none");
+
+				var link = folderItem.find('a').first();
+				link.text(folder.name);
+				link.attr('href', folder.link);
+				
+				$('#folders').prepend(folderItem);
+			}
+		},
+      	error: function() {
+			console.log("Error while retrieving the files from server");
+		}
+    });
+}
+
 function addNewFileItem(event) {
 	const file = event.target.files[0];
 	
@@ -61,52 +109,6 @@ function addNewFileItem(event) {
 	$('#noFilesLabel').addClass("d-none");
 	
 	$('#files').prepend(fileItem);
-}
-
-function getObjectsInfoFromServer() {
-	$.ajax({
-        url: '/api/object/all', 
-        type: 'GET',
-        success: function(response) {
-			if (response.folders.length ===  0) {
-				$('#noFoldersLabel').removeClass("d-none");
-			}
-			
-			if (response.files.length === 0) {
-				$('#noFilesLabel').removeClass("d-none");
-			}
-			
-			for (const file of response.files) {
-				var fileItem = $('#fileItem').clone();
-				
-				fileItem.removeAttr('id');
-				fileItem.removeClass("d-none");
-				fileItem.find('div.spinner-border').remove();
-				fileItem.find('div.dropdown').removeClass("d-none");
-				
-				fileItem.find('span').text(file.name);
-				
-				setUpFileIcon(fileItem, file.extension);
-				
-				$('#files').prepend(fileItem);
-			}
-			for (const folder of response.folders) {
-				var folderItem = $('#folderItem').clone();
-					
-				folderItem.removeAttr('id');
-				folderItem.removeClass("d-none");
-
-				var link = folderItem.find('a').first();
-				link.text(folder.name);
-				link.attr('href', folder.link);
-				
-				$('#folders').prepend(folderItem);
-			}
-		},
-      	error: function() {
-			console.log("Error while retrieving the files from server");
-		}
-    });
 }
 
 function uploadFileToServer(file, onUploadingSuccess, onUploadingError) {

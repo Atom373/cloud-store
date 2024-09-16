@@ -3,6 +3,10 @@ server:
     session:
       timeout: 24h
 
+encryption:
+  password: alkj28lskd
+  salt: A4F1C52ED7AA56
+
 spring:
   application:
     name: cloud-storage

@@ -203,7 +203,7 @@
 									<i class='bx bx-dots-vertical-rounded'></i>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
-									<li><a class="dropdown-item" href="#"><i class='bx bx-download'
+									<li><a class="dropdown-item  download-link" href="#"><i class='bx bx-download'
 												style="font-size: 20px;"></i> Download</a></li>
 									<li><a class="dropdown-item" href="#"><i class='bx bx-edit-alt'
 												style="font-size: 20px;"></i> Rename</a></li>
@@ -255,6 +255,17 @@
 			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>
 	</div>
+	
+	<div id="linkWasCopiedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+		aria-atomic="true" data-bs-delay="4000">
+		<div class="d-flex">
+			<div class="toast-body d-flex align-items-center">
+				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+				<span>Link was copied to clipboard</span>
+			</div>
+			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
 
 	<!-- Modals -->
 
@@ -272,6 +283,8 @@
 			</div>
 		</div>
 	</div>
+	
+	
+	
 </body>
-
 </html>
