@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+	  xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 
 <head>
 	<meta charset="UTF-8">
@@ -119,7 +119,7 @@
 					aria-valuemin="0" aria-valuemax="100">
 					<div class="progress-bar" style="width: 30%"></div>
 				</div>
-				<div class="d-flex justify-content-center">
+				<div class="text-center">
 					1.5 GB of 5 GB used
 				</div>
 			</div>
@@ -131,8 +131,19 @@
 					<div class="bg-dark m-3 p-3 pb-1 rounded-4 d-flex">
 						<nav class="flex-grow-1" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
 							<ol class="breadcrumb">
-								<li class="breadcrumb-item"><a href="/main">My Drive</a></li>
-								<li class="breadcrumb-item active" aria-current="page">My Folder</li>
+								<li class="breadcrumb-item"
+									th:classappend="${#lists.isEmpty(breadcrumbs) ? 'active' : ''}">
+									<a href="/main">My Drive</a>
+								</li>
+								<li class="breadcrumb-item" th:each="breadcrumb, iterStat : ${breadcrumbs}"
+													    	th:classappend="${iterStat.last ? 'active' : ''}"
+													    	th:attr="aria-current='page'">
+									<a th:unless="${iterStat.last}" 
+									   th:href="@{/main(path=${breadcrumb.path})}" 
+   									   th:text="${breadcrumb.foldername}"></a>
+   									<span th:if="${iterStat.last}" 
+   										  th:text="${breadcrumb.foldername}"></span>
+								</li>
 							</ol>
 						</nav>
 					</div>
@@ -142,7 +153,7 @@
 					
 					<div id='noFoldersLabel' class='text-center m-4 fs-5 d-none'>There are no folders yet</div>
 					
-					<div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
+					<div class="d-grid mb-1 gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
 						<!-- Invisible folder item. Used only to create new folder items -->
 						<div class="bg-dark d-flex p-2 rounded-4 d-none" id="folderItem">
 							<i class='bx bx-folder mx-1' style="font-size: 28px;"></i>
