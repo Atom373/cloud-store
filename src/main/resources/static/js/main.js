@@ -46,7 +46,16 @@ function getObjectsInfoFromServer() {
 				fileItem.find('div.spinner-border').remove();
 				fileItem.find('div.dropdown').removeClass("d-none");
 				
-				fileItem.find('a.download-link').attr('href', '/api/download/file/' + file.id);
+				const link = '/api/download/file/' + file.id;
+				console.log(link);
+				fileItem.find('a.download-link').attr('href', link);
+				
+				fileItem.find('a.share-link').click(function(event) {
+					event.preventDefault();
+					console.log(window.location.origin);
+					navigator.clipboard.writeText(window.location.origin + link);
+					$('#linkWasCopiedMsg').toast('show');
+				});
 				
 				fileItem.find('span').text(file.name);
 				
