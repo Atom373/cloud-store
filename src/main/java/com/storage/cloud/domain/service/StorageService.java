@@ -1,6 +1,8 @@
 package com.storage.cloud.domain.service;
 
 
+import java.util.Map;
+
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,13 +13,15 @@ public interface StorageService {
 
 	ObjectsDto getAllObjectsFrom(String dirName, User user);
 	
-	Resource getFileResource(String bucket, String objectName);
+	Resource getFileResource(String bucketName, String objectName);
+	
+	Map<String, String> getObjectMeta(String bucketName, String objectName);
 	
 	void createBucketFor(User user);
 	
 	String createFolder(String dirName, String foldername, User user);
 	
-	void save(MultipartFile file, String directory, User user);
+	String save(MultipartFile file, String directory, User user);
 	
 	void rename(String oldFilename, String newFilename, User user);
 	

@@ -7,10 +7,11 @@ const fileIcons = {
 	'html': {class: 'bxs-file-html', color: 'chocolate'}
 }
 
+const fileInfoCache = {}
+
 $(document).ready(function () {
 	
 	getObjectsInfoFromServer();
-		
 	
 	$("#newFolderBtn").on('click', function() {
 		$("#createFolderModal").modal('show');
@@ -46,16 +47,7 @@ function getObjectsInfoFromServer() {
 				fileItem.find('div.spinner-border').remove();
 				fileItem.find('div.dropdown').removeClass("d-none");
 				
-				const link = '/api/download/file/' + file.id;
-				console.log(link);
-				fileItem.find('a.download-link').attr('href', link);
-				
-				fileItem.find('a.share-link').click(function(event) {
-					event.preventDefault();
-					console.log(window.location.origin);
-					navigator.clipboard.writeText(window.location.origin + link);
-					$('#linkWasCopiedMsg').toast('show');
-				});
+				setUpCallbacks(fileItem, file.id);
 				
 				fileItem.find('span').text(file.name);
 				
@@ -82,6 +74,35 @@ function getObjectsInfoFromServer() {
     });
 }
 
+function setUpCallbacks(fileItem, fileId) {
+	const link = '/api/download/file/' + fileId;
+	console.log(link);
+	
+	fileItem.find('a.download-link').attr('href', link);
+	
+	fileItem.find('a.share-link').click(function() {
+		console.log(window.location.origin);
+		navigator.clipboard.writeText(window.location.origin + link);
+		$('#linkWasCopiedMsg').toast('show');
+	});
+	
+	fileItem.find('a.info-link').click(function() {
+		$.ajax({
+	        url: '/api/object/meta/' + fileId, 
+	        type: 'GET',
+	        success: function(meta) {
+				//console.log(JSON.stringify(meta, null, 2));
+				$('#filenameInfo').text(meta.filename);
+				$('#pathInfo').text(meta.path);
+				$('#typeInfo').text(meta.type);
+				$('#sizeInfo').text(meta.size);
+				$('#uploadedInfo').text(meta.uploaded);
+			}
+		});
+		$('#fileInfoModal').modal('show');
+	});
+}
+
 function addNewFileItem(event) {
 	const file = event.target.files[0];
 	
@@ -100,7 +121,8 @@ function addNewFileItem(event) {
 	var dropdown = fileItem.find('div.dropdown');
 	var spiner = fileItem.find('div.spinner-border');
 	
-	function onUploadingSuccess() {
+	function onUploadingSuccess(fileId) {
+		setUpCallbacks(fileItem, fileId);
 		$("#fileWasUploadedMsg").toast('show');
 		spiner.remove();
 		dropdown.removeClass("d-none");
@@ -125,7 +147,7 @@ function uploadFileToServer(file, onUploadingSuccess, onUploadingError) {
     formData.append('file', file);
     
     $.ajax({
-        url: '/api/file/upload', 
+        url: '/api/upload/file', 
         type: 'POST',
         data: formData,
         processData: false,

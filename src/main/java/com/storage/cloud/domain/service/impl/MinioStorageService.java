@@ -2,10 +2,14 @@ package com.storage.cloud.domain.service.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.io.InputStreamResource;
@@ -16,8 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.storage.cloud.domain.dto.FileDto;
 import com.storage.cloud.domain.dto.FolderDto;
 import com.storage.cloud.domain.dto.ObjectsDto;
-import com.storage.cloud.domain.service.FileIdEncodingService;
 import com.storage.cloud.domain.service.StorageService;
+import com.storage.cloud.domain.utils.FileUtils;
 import com.storage.cloud.security.model.User;
 
 import io.minio.GetObjectArgs;
@@ -26,6 +30,8 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.Result;
+import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MinioStorageService implements StorageService {
 
 	private final MinioClient client;
-	private final FileIdEncodingService encodingService;
+	private final FileUtils fileUtils;
 	
 	@Override
 	public ObjectsDto getAllObjectsFrom(String dirName, User user) {
@@ -60,7 +66,7 @@ public class MinioStorageService implements StorageService {
 					folders.add(new FolderDto(foldername, linkToFolder));
 				} else if (!relativeName.isEmpty()) {
 					String[] filename = relativeName.split("\\.");
-					String fileId = encodingService.encode(user.getId()+"", objectName);
+					String fileId = fileUtils.createFileId(user, objectName);
 					files.add(new FileDto(fileId, filename[0], filename[1]));
 				}
 			} catch (Exception e) {
@@ -86,6 +92,21 @@ public class MinioStorageService implements StorageService {
 			log.error(e.getLocalizedMessage());
 			throw new RuntimeException(e);
 		} 
+	}
+	
+	public Map<String, String> getObjectMeta(String bucketName, String objectName) {
+		try {
+			StatObjectResponse stat = client.statObject(
+		            StatObjectArgs.builder()
+		                .bucket(bucketName)
+		                .object(objectName)
+		                .build()
+		    );
+			return stat.userMetadata();
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override
@@ -120,8 +141,9 @@ public class MinioStorageService implements StorageService {
 	}
 	
 	@Override
-	public void save(MultipartFile file, String dirName, User user){
+	public String save(MultipartFile file, String dirName, User user){
 		String fileObject = dirName + file.getOriginalFilename();
+		Map<String, String> meta = this.createMetadataFor(file, dirName);
 		log.info(fileObject);
 		try {
 			client.putObject(
@@ -130,11 +152,13 @@ public class MinioStorageService implements StorageService {
 		        	.object(fileObject)
 		        	.stream(file.getInputStream(), file.getSize(), -1)
 	                .contentType(file.getContentType())
+	                .headers(meta)
 	                .build()
 			);
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
 		} 
+		return fileUtils.createFileId(user, fileObject);
 	}
 
 	@Override
@@ -147,5 +171,40 @@ public class MinioStorageService implements StorageService {
 	public void delete(String filename, User user) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private Map<String, String> createMetadataFor(MultipartFile file, String dirName) {
+		Map<String, String> meta = new HashMap<>();
+		
+		String path = dirName.isEmpty() ? "My Drive" : dirName;
+		
+		String[] filename = file.getOriginalFilename().split("\\.");
+		
+		meta.put("x-amz-meta-filename", filename[0]);
+		meta.put("x-amz-meta-path", path);
+		meta.put("x-amz-meta-type", filename[1]);
+		meta.put("x-amz-meta-size", this.getFileSize(file));
+		meta.put("x-amz-meta-uploaded", this.getCurrentDate());
+		
+		return meta;
+	}
+	
+	private String getFileSize(MultipartFile file) {
+		long size = file.getSize();
+		
+		if (size > 1024)
+			size /= 1024;
+		else
+			return size + "B";
+		
+		if (size > 1024)
+			return (size / 1024) + "MB";
+		return size + "KB";
+	}
+	
+	private String getCurrentDate() {
+		LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        return currentDate.format(formatter);
 	}
 }

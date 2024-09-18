@@ -1,5 +1,7 @@
 package com.storage.cloud.domain.api;
 
+import java.util.Map;
+
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,12 +35,12 @@ public class ObjectController {
 	private final FileIdEncodingService encodingService;
 	private final FileUtils fileUtils;
 	
-	@PostMapping("/file/upload")
+	@PostMapping("/upload/file")
 	@ResponseStatus(HttpStatus.CREATED)
-	public void uploadFile(MultipartFile file, HttpSession session,
+	public String uploadFile(MultipartFile file, HttpSession session,
 						   @AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
-		storageService.save(file, currentDir, user);
+		return storageService.save(file, currentDir, user);
 	}
 	
 	@GetMapping("/download/file/{encodedFileId}") // file Id consists of bucket name and objectName
@@ -59,6 +61,12 @@ public class ObjectController {
 			   							 @AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
 		return storageService.getAllObjectsFrom(currentDir, user);
+	}
+	
+	@GetMapping("/object/meta/{encodedObjectId}")
+	public Map<String, String> getObjectMetadata(@PathVariable String encodedObjectId) {
+		String[] fileId = encodingService.decode(encodedObjectId);
+		return storageService.getObjectMeta(fileId[0], fileId[1]);
 	}
 	
 	@PostMapping("/folder")

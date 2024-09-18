@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-	  xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 
 <head>
 	<meta charset="UTF-8">
@@ -136,13 +136,10 @@
 									<a href="/main">My Drive</a>
 								</li>
 								<li class="breadcrumb-item" th:each="breadcrumb, iterStat : ${breadcrumbs}"
-													    	th:classappend="${iterStat.last ? 'active' : ''}"
-													    	th:attr="aria-current='page'">
-									<a th:unless="${iterStat.last}" 
-									   th:href="@{/main(path=${breadcrumb.path})}" 
-   									   th:text="${breadcrumb.foldername}"></a>
-   									<span th:if="${iterStat.last}" 
-   										  th:text="${breadcrumb.foldername}"></span>
+									th:classappend="${iterStat.last ? 'active' : ''}" th:attr="aria-current='page'">
+									<a th:unless="${iterStat.last}" th:href="@{/main(path=${breadcrumb.path})}"
+										th:text="${breadcrumb.foldername}"></a>
+									<span th:if="${iterStat.last}" th:text="${breadcrumb.foldername}"></span>
 								</li>
 							</ol>
 						</nav>
@@ -150,9 +147,9 @@
 
 					<!-- Folders -->
 					<span class="m-4 fs-5 text-decoration-underline">Folders</span>
-					
+
 					<div id='noFoldersLabel' class='text-center m-4 fs-5 d-none'>There are no folders yet</div>
-					
+
 					<div class="d-grid mb-1 gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
 						<!-- Invisible folder item. Used only to create new folder items -->
 						<div class="bg-dark d-flex p-2 rounded-4 d-none" id="folderItem">
@@ -187,9 +184,9 @@
 
 					<!-- Files -->
 					<span class="m-4 fs-5 mt-5 text-decoration-underline">Files</span>
-					
+
 					<div id='noFilesLabel' class='text-center m-4 fs-5 d-none'>There are no files yet</div>
-					
+
 					<div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="files">
 						<!-- Invisible file item. Used only to create new file items -->
 						<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4 d-none">
@@ -205,21 +202,21 @@
 								<ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
 									<li><a class="dropdown-item  download-link" href="#"><i class='bx bx-download'
 												style="font-size: 20px;"></i> Download</a></li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-edit-alt'
+									<li><a class="dropdown-item rename-link" href="#"><i class='bx bx-edit-alt'
 												style="font-size: 20px;"></i> Rename</a></li>
 									<li>
 										<hr class="dropdown-divider">
 									</li>
 									<li><a class="dropdown-item share-link" href="#"><i class='bx bx-share'
 												style="font-size: 20px;"></i> Share</a></li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-info-circle'
+									<li><a class="dropdown-item info-link" href="#"><i class='bx bx-info-circle'
 												style="font-size: 20px;"></i> File info</a></li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-star'
+									<li><a class="dropdown-item starred-link" href="#"><i class='bx bx-star'
 												style="font-size: 20px;"></i> Add to starred</a></li>
 									<li>
 										<hr class="dropdown-divider">
 									</li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-trash'
+									<li><a class="dropdown-item trash-link" href="#"><i class='bx bx-trash'
 												style="font-size: 20px;"></i> Move to trash</a></li>
 								</ul>
 							</div>
@@ -255,7 +252,7 @@
 			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>
 	</div>
-	
+
 	<div id="linkWasCopiedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
 		aria-atomic="true" data-bs-delay="4000">
 		<div class="d-flex">
@@ -283,8 +280,34 @@
 			</div>
 		</div>
 	</div>
-	
-	
-	
+
+	<div class="modal" tabindex="-1" id="fileInfoModal">
+		<div class="modal-dialog modal-dialog-centered modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="filenameInfo"></h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+				</div>
+				<div class="modal-body">
+					<table class="table table-borderless">
+						<tr>
+							<td>Path:</td><td id="pathInfo"></td>
+						</tr>
+						<tr>
+							<td>Type:</td><td id="typeInfo"></td>
+						</tr>
+						<tr>
+							<td>Size:</td><td id="sizeInfo"></td>
+						</tr>
+						<tr>
+							<td>Uploaded:</td><td id="uploadedInfo"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
 </body>
+
 </html>
