@@ -101,6 +101,38 @@ function setUpCallbacks(fileItem, fileId) {
 		});
 		$('#fileInfoModal').modal('show');
 	});
+	
+	fileItem.find('a.rename-link').click(function() {
+		$('#renameFileModal').modal('show');
+		
+		$('#renameFileBtn').click(function() {
+			var newFilename = $('#newFilenameInput').val().trim();
+			
+			if (newFilename.length === 0 || newFilename.includes('/') || newFilename.includes('.'))
+				return;
+			
+			fileItem.find('span').text(newFilename);
+			
+			sendRenameFileRequest(fileId, newFilename, fileItem);
+			
+			$('#renameFileModal').modal('hide');
+		});
+	});
+	
+}
+
+function sendRenameFileRequest(fileId, newFilename, fileItem) {
+	$.ajax({
+        url: '/api/rename/file/' + fileId, 
+        type: 'PATCH',
+		data: { newFilename: newFilename },
+		success: function(newFileId) {
+			setUpCallbacks(fileItem, newFileId);
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
 }
 
 function addNewFileItem(event) {
@@ -173,7 +205,7 @@ function setUpFileIcon(fileItem, fileExtension) {
 }
 
 function addNewFolderItem() {
-	var foldername = $('#foldernameInput').val();
+	var foldername = $('#foldernameInput').val().trim();
 	if (foldername.length === 0)
 		return;
 	

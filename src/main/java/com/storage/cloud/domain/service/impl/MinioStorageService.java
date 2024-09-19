@@ -24,11 +24,14 @@ import com.storage.cloud.domain.service.StorageService;
 import com.storage.cloud.domain.utils.FileUtils;
 import com.storage.cloud.security.model.User;
 
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.Result;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
@@ -162,9 +165,35 @@ public class MinioStorageService implements StorageService {
 	}
 
 	@Override
-	public void rename(String oldFilename, String newFilename, User user) {
-		// TODO Auto-generated method stub
+	public String rename(String bucket, String objectName, String newFilename) {
+		String dir = fileUtils.getDir(objectName);
+		String extension = fileUtils.getFileExtension(objectName);
 		
+		String newObjectName = dir + newFilename + "." + extension;
+		System.out.println("newObjectName="+newObjectName);
+		try {
+			client.copyObject(
+	            CopyObjectArgs.builder()
+	                .bucket(bucket)
+	                .object(newObjectName)
+	                .source(CopySource.builder()
+	                			.bucket(bucket)
+	                			.object(objectName)
+	                			.build()
+	                )
+	                .build()
+	        );
+		
+	        client.removeObject(
+	            RemoveObjectArgs.builder()
+	                .bucket(bucket)
+	                .object(objectName)
+	                .build()
+	        );
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
+		} 
+		return newObjectName;
 	}
 
 	@Override
@@ -195,11 +224,11 @@ public class MinioStorageService implements StorageService {
 		if (size > 1024)
 			size /= 1024;
 		else
-			return size + "B";
+			return size + " B";
 		
 		if (size > 1024)
-			return (size / 1024) + "MB";
-		return size + "KB";
+			return (size / 1024) + " MB";
+		return size + " KB";
 	}
 	
 	private String getCurrentDate() {

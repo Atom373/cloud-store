@@ -23,7 +23,7 @@ public interface StorageService {
 	
 	String save(MultipartFile file, String directory, User user);
 	
-	void rename(String oldFilename, String newFilename, User user);
+	String rename(String bucket, String objectName, String newFilename);
 	
 	void delete(String filename, User user);
 }

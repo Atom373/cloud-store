@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,6 +56,16 @@ public class ObjectController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(resource);
     }
+	
+	@PatchMapping("/rename/file/{encodedFileId}")
+	public String renameFile(@PathVariable String encodedFileId,
+							 @RequestParam String newFilename) {
+		String[] fileId = encodingService.decode(encodedFileId);
+		
+		String newObjectName = storageService.rename(fileId[0], fileId[1], newFilename);
+		
+		return encodingService.encode(fileId[0], newObjectName);
+	}
 	
 	@GetMapping("/object/all")
 	public ObjectsDto getAllUsersObjects(HttpSession session,

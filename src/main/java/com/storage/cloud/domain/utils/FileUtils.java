@@ -22,4 +22,17 @@ public class FileUtils {
 	public String createFileId(User user, String objectName) {
 		return encodingService.encode(user.getId()+"", objectName);
 	}
+	
+	public String getDir(String objectName) {
+		if (!objectName.contains("/"))
+			return "";
+		
+		int lastBackslashIndex = objectName.lastIndexOf("/");
+		
+		return objectName.substring(0, lastBackslashIndex) + '/';
+	}
+	
+	public String getFileExtension(String objectName) {
+		return objectName.split("\\.")[1];
+	}
 }
