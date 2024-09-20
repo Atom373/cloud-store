@@ -149,10 +149,9 @@ function addNewFileItem(event) {
 	fileItem.removeAttr('id');
 	
 	fileItem.removeClass("d-none");
-	
-	var filename = file.name.split('.');
-	var filenameWithoutExtension = filename[0];
-	var fileExtension = filename[1];
+	 
+	var filenameWithoutExtension = file.name.substring(0, file.name.lastIndexOf('.'));
+	var fileExtension = file.name.split('.').pop();;
 	fileItem.find('a.open-link').text(filenameWithoutExtension);
 	
 	setUpFileIcon(fileItem, fileExtension);
@@ -160,11 +159,12 @@ function addNewFileItem(event) {
 	var dropdown = fileItem.find('div.dropdown');
 	var spiner = fileItem.find('div.spinner-border');
 	
-	function onUploadingSuccess(fileId) {
-		setUpCallbacks(fileItem, fileId);
+	function onUploadingSuccess(fileUploadingResponse) {
+		setUpCallbacks(fileItem, fileUploadingResponse.fileId);
 		$("#fileWasUploadedMsg").toast('show');
 		spiner.remove();
 		dropdown.removeClass("d-none");
+		changeProgressBar(fileUploadingResponse);
 		console.log('Файл успешно отправлен');
 	}
 	
@@ -194,6 +194,11 @@ function uploadFileToServer(file, onUploadingSuccess, onUploadingError) {
         success: onUploadingSuccess,
         error: onUploadingError
     });
+}
+
+function changeProgressBar(fileUploadingResponse) {
+	$('div.progress-bar').css('width', fileUploadingResponse.percentOfUsedSpace);
+	$('div.used-space-label').text(fileUploadingResponse.formattedUsedSpace + " of 5 GB used");
 }
 
 function setUpFileIcon(fileItem, fileExtension) {

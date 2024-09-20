@@ -21,10 +21,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.storage.cloud.domain.dto.FileUploadingResponse;
 import com.storage.cloud.domain.dto.ObjectsDto;
 import com.storage.cloud.domain.service.FileIdEncodingService;
 import com.storage.cloud.domain.service.StorageService;
 import com.storage.cloud.domain.utils.FileUtils;
+import com.storage.cloud.domain.utils.UserDataUtils;
 import com.storage.cloud.security.model.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -38,13 +40,20 @@ public class ObjectController {
 	private final StorageService storageService;
 	private final FileIdEncodingService encodingService;
 	private final FileUtils fileUtils;
+	private final UserDataUtils userDataUtils;
 	
 	@PostMapping("/upload/file")
 	@ResponseStatus(HttpStatus.CREATED)
-	public String uploadFile(MultipartFile file, HttpSession session,
-						   @AuthenticationPrincipal User user) {
+	public FileUploadingResponse uploadFile(MultipartFile file, HttpSession session,
+						   					@AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
-		return storageService.save(file, currentDir, user);
+		
+		String fileId = storageService.save(file, currentDir, user);
+		
+		String percentOfUsedSpace = userDataUtils.convertToPercents(user.getUsedDiskSpace());
+		String formattedUsedSpace = fileUtils.formatSize(user.getUsedDiskSpace());
+		
+		return new FileUploadingResponse(fileId, percentOfUsedSpace, formattedUsedSpace);
 	}
 	
 	@GetMapping("/download/file/{encodedFileId}") // file Id consists of bucket name and objectName

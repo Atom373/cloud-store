@@ -26,13 +26,23 @@ public class FileUtils {
 	public String getDir(String objectName) {
 		if (!objectName.contains("/"))
 			return "";
-		
 		int lastBackslashIndex = objectName.lastIndexOf("/");
-		
 		return objectName.substring(0, lastBackslashIndex) + '/';
 	}
 	
 	public String getFileExtension(String objectName) {
 		return objectName.split("\\.")[1];
+	}
+	
+	public String formatSize(long size) {
+		if (size < 1024) return size + " B";
+		else size /= 1024;	
+		
+		if (size < 1024) return size + " KB";
+		else size /= 1024;
+	
+		if (size < 1024) return size + " MB";
+		
+		return (size / 1024) + " GB";
 	}
 }

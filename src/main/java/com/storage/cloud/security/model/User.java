@@ -35,6 +35,8 @@ public class User implements UserDetails {
 	private final String username;
 	private final String password;
 	
+	private long usedDiskSpace = 0;
+	
 	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

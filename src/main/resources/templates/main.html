@@ -117,9 +117,9 @@
 				<!-- Disk load-->
 				<div class="progress my-2" role="progressbar" aria-label="Basic example" aria-valuenow="25"
 					aria-valuemin="0" aria-valuemax="100">
-					<div class="progress-bar" style="width: 30%"></div>
+					<div class="progress-bar" th:style="'width:' + ${percentOfUsedSpace} + ';'"></div>
 				</div>
-				<div class="text-center">
+				<div class="text-center used-space-label" th:text="${usedDiskSpace} + ' of 5 GB used'">
 					1.5 GB of 5 GB used
 				</div>
 			</div>

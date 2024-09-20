@@ -23,10 +23,10 @@ import com.storage.cloud.domain.dto.ObjectsDto;
 import com.storage.cloud.domain.service.StorageService;
 import com.storage.cloud.domain.utils.FileUtils;
 import com.storage.cloud.security.model.User;
+import com.storage.cloud.security.service.UserService;
 
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
-import io.minio.Directive;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
@@ -47,6 +47,7 @@ public class MinioStorageService implements StorageService {
 
 	private final MinioClient client;
 	private final FileUtils fileUtils;
+	private final UserService userService;
 	
 	@Override
 	public ObjectsDto getAllObjectsFrom(String dirName, User user) {
@@ -162,6 +163,7 @@ public class MinioStorageService implements StorageService {
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
 		} 
+		userService.increaseUsedDiskSpace(user, file.getSize());
 		return fileUtils.createFileId(user, fileObject);
 	}
 
@@ -257,24 +259,11 @@ public class MinioStorageService implements StorageService {
 		
 		meta.put("x-amz-meta-path", path);
 		meta.put("x-amz-meta-type", extension.toUpperCase());
-		meta.put("x-amz-meta-size", this.getFileSize(file));
+		meta.put("x-amz-meta-size", fileUtils.formatSize(file.getSize()));
 		meta.put("x-amz-meta-uploaded", this.getCurrentDate());
 		meta.put("x-amz-meta-viewed", "-");
 		
 		return meta;
-	}
-	
-	private String getFileSize(MultipartFile file) {
-		long size = file.getSize();
-		
-		if (size > 1024)
-			size /= 1024;
-		else
-			return size + " B";
-		
-		if (size > 1024)
-			return (size / 1024) + " MB";
-		return size + " KB";
 	}
 	
 	private String getCurrentDate() {

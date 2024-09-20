@@ -2,6 +2,7 @@ package com.storage.cloud.security.service;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.storage.cloud.security.exception.UserAlreadyExistsException;
 import com.storage.cloud.security.model.User;
@@ -30,5 +31,12 @@ public class UserService {
 		}
 		userRepo.save(user);
 		redisTemplate.opsForSet().add(USERNAMES_KEY, user.getUsername());
+	}
+	
+	@Transactional
+	public void increaseUsedDiskSpace(User user, long bytes) {
+		long previousValue = user.getUsedDiskSpace();
+		user.setUsedDiskSpace(previousValue + bytes);
+		userRepo.save(user);
 	}
 }
