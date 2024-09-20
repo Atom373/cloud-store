@@ -1,5 +1,8 @@
 package com.storage.cloud.domain.api;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.springframework.core.io.Resource;
@@ -53,7 +56,24 @@ public class ObjectController {
         Resource resource = storageService.getFileResource(fileId[0], fileId[1]);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachement; filename=\"" + filename + "\"")
+                .body(resource);
+    }
+	
+	@GetMapping("/open/file/{encodedFileId}") // file Id consists of bucket name and objectName
+    public ResponseEntity<Resource> openFile(@PathVariable String encodedFileId) throws IOException {
+		System.out.println("in open file method: " + encodedFileId);
+		String[] fileId = encodingService.decode(encodedFileId);
+		
+		String filename = fileUtils.getFilenameFromFileId(fileId);
+		String contentType = Files.probeContentType(Paths.get(filename));
+		
+		storageService.updateLastViewedDate(fileId[0], fileId[1]);
+		
+        Resource resource = storageService.getFileResource(fileId[0], fileId[1]);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .body(resource);
     }
 	

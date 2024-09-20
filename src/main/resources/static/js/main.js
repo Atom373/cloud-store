@@ -49,7 +49,7 @@ function getObjectsInfoFromServer() {
 				
 				setUpCallbacks(fileItem, file.id);
 				
-				fileItem.find('span').text(file.name);
+				fileItem.find('a.open-link').text(file.name);
 				
 				setUpFileIcon(fileItem, file.extension);
 				
@@ -75,34 +75,41 @@ function getObjectsInfoFromServer() {
 }
 
 function setUpCallbacks(fileItem, fileId) {
+	console.log(fileId);
 	const link = '/api/download/file/' + fileId;
-	console.log(link);
+	//console.log(link);
+	
+	const openLink = fileItem.find('a.open-link');
+	openLink.attr('href', '/api/open/file/' + fileId);
+	openLink.attr('target', '_blank');
 	
 	fileItem.find('a.download-link').attr('href', link);
 	
-	fileItem.find('a.share-link').click(function() {
-		console.log(window.location.origin);
+	fileItem.find('a.share-link').off('click').on('click',function() {
 		navigator.clipboard.writeText(window.location.origin + link);
 		$('#linkWasCopiedMsg').toast('show');
 	});
 	
-	fileItem.find('a.info-link').click(function() {
+	fileItem.find('a.info-link').off('click').on('click',function() {
 		$.ajax({
 	        url: '/api/object/meta/' + fileId, 
 	        type: 'GET',
+			cache: false,
 	        success: function(meta) {
-				//console.log(JSON.stringify(meta, null, 2));
-				$('#filenameInfo').text(meta.filename);
+				console.log(JSON.stringify(meta, null, 2));
+				const filename = openLink.text();
+				$('#filenameInfo').text(filename);
 				$('#pathInfo').text(meta.path);
 				$('#typeInfo').text(meta.type);
 				$('#sizeInfo').text(meta.size);
 				$('#uploadedInfo').text(meta.uploaded);
+				$('#viewedInfo').text(meta.viewed);
 			}
 		});
 		$('#fileInfoModal').modal('show');
 	});
 	
-	fileItem.find('a.rename-link').click(function() {
+	fileItem.find('a.rename-link').off('click').on('click',function() {
 		$('#renameFileModal').modal('show');
 		
 		$('#renameFileBtn').click(function() {
@@ -111,7 +118,7 @@ function setUpCallbacks(fileItem, fileId) {
 			if (newFilename.length === 0 || newFilename.includes('/') || newFilename.includes('.'))
 				return;
 			
-			fileItem.find('span').text(newFilename);
+			openLink.text(newFilename);
 			
 			sendRenameFileRequest(fileId, newFilename, fileItem);
 			
@@ -146,7 +153,7 @@ function addNewFileItem(event) {
 	var filename = file.name.split('.');
 	var filenameWithoutExtension = filename[0];
 	var fileExtension = filename[1];
-	fileItem.find('span').text(filenameWithoutExtension);
+	fileItem.find('a.open-link').text(filenameWithoutExtension);
 	
 	setUpFileIcon(fileItem, fileExtension);
 	

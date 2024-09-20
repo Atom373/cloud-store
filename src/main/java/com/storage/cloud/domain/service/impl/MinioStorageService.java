@@ -26,6 +26,7 @@ import com.storage.cloud.security.model.User;
 
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
+import io.minio.Directive;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
@@ -97,11 +98,11 @@ public class MinioStorageService implements StorageService {
 		} 
 	}
 	
-	public Map<String, String> getObjectMeta(String bucketName, String objectName) {
+	public Map<String, String> getObjectMeta(String bucket, String objectName) {
 		try {
 			StatObjectResponse stat = client.statObject(
 		            StatObjectArgs.builder()
-		                .bucket(bucketName)
+		                .bucket(bucket)
 		                .object(objectName)
 		                .build()
 		    );
@@ -166,6 +167,8 @@ public class MinioStorageService implements StorageService {
 
 	@Override
 	public String rename(String bucket, String objectName, String newFilename) {
+		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+		System.out.println("meta in rename: " + meta);
 		String dir = fileUtils.getDir(objectName);
 		String extension = fileUtils.getFileExtension(objectName);
 		
@@ -196,10 +199,53 @@ public class MinioStorageService implements StorageService {
 		return newObjectName;
 	}
 
+	public void updateLastViewedDate(String bucket, String objectName) {
+		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+		
+		Map<String, String> newMeta = this.getMetaWithStandardKeyNames(meta);
+		
+		String viewedDate = meta.get("viewed");
+		String newViewedDate = this.getCurrentDate();
+		
+		if (viewedDate != null && viewedDate.equals(newViewedDate))
+			return; 
+		
+		newMeta.put("x-amz-metadata-directive", "REPLACE");
+		newMeta.put("x-amz-meta-viewed", newViewedDate);
+		
+		System.out.println("new meta is: " + newMeta);
+		try {
+			client.copyObject(
+	            CopyObjectArgs.builder()
+	                .bucket(bucket)
+	                .object(objectName)
+	                .headers(newMeta) 
+	                .source(CopySource.builder()
+	                    .bucket(bucket)
+	                    .object(objectName)
+	                    .build()
+	                )
+	                .build()
+	        );
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
+		} 
+	}
+	
 	@Override
 	public void delete(String filename, User user) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private Map<String, String> getMetaWithStandardKeyNames(Map<String, String> meta) {
+		Map<String, String> newMeta = new HashMap<>();
+		
+		meta.forEach((key, value) -> {
+			String standardKey = "x-amz-meta-" + key;
+            newMeta.put(standardKey, value);
+		});
+		return newMeta;
 	}
 	
 	private Map<String, String> createMetadataFor(MultipartFile file, String dirName) {
@@ -207,13 +253,13 @@ public class MinioStorageService implements StorageService {
 		
 		String path = dirName.isEmpty() ? "My Drive" : dirName;
 		
-		String[] filename = file.getOriginalFilename().split("\\.");
+		String extension = file.getOriginalFilename().split("\\.")[1];
 		
-		meta.put("x-amz-meta-filename", filename[0]);
 		meta.put("x-amz-meta-path", path);
-		meta.put("x-amz-meta-type", filename[1]);
+		meta.put("x-amz-meta-type", extension.toUpperCase());
 		meta.put("x-amz-meta-size", this.getFileSize(file));
 		meta.put("x-amz-meta-uploaded", this.getCurrentDate());
+		meta.put("x-amz-meta-viewed", "-");
 		
 		return meta;
 	}

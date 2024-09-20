@@ -191,9 +191,10 @@
 						<!-- Invisible file item. Used only to create new file items -->
 						<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4 d-none">
 							<i class='bx mx-1' style="font-size: 28px;"></i>
-							<span class="flex-grow-1 mx-1 fs-5 text-truncate" style='max-width: 212.250px ;'>
+							<a class="flex-grow-1 mx-1 fs-5 text-truncate text-reset text-decoration-none open-link" 
+								style='max-width: 212.250px ;' href="#">
 								Filename
-							</span>
+							</a>
 							<div class="dropdown d-none">
 								<button class="btn btn-dark d-flex justify-content-center rounded-pill" type="button"
 									data-bs-toggle="dropdown" aria-expanded="false">
@@ -316,6 +317,9 @@
 						</tr>
 						<tr>
 							<td>Uploaded:</td><td id="uploadedInfo"></td>
+						</tr>
+						<tr>
+							<td>Viewed:</td><td id="viewedInfo"></td>
 						</tr>
 					</table>
 				</div>

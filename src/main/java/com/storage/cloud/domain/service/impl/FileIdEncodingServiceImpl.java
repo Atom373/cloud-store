@@ -20,12 +20,14 @@ public class FileIdEncodingServiceImpl implements FileIdEncodingService {
 	@Override
 	public String encode(String bucket, String objectName) {
 		String fileId = bucket + ':' + objectName;
+		System.out.println("in encode: " + encoder.encodeToString(fileId.getBytes()));
 		return encoder.encodeToString(fileId.getBytes());
 	}
 
 	@Override
 	public String[] decode(String encodedFileId) {
-		String decodedFileId = new String(decoder.decode(encodedFileId.getBytes()));
+		System.out.println("in decode: " + encodedFileId);
+		String decodedFileId = new String(decoder.decode(encodedFileId));
 		return decodedFileId.split(":");
 	}
 	

@@ -25,5 +25,7 @@ public interface StorageService {
 	
 	String rename(String bucket, String objectName, String newFilename);
 	
+	void updateLastViewedDate(String bucket, String objectName);
+	
 	void delete(String filename, User user);
 }
