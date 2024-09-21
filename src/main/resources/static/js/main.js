@@ -5,7 +5,7 @@ const fileIcons = {
 	'png': {class: 'bxs-file-png', color: 'white'},
 	'jpg': {class: 'bxs-file-jpg', color: 'white'},
 	'html': {class: 'bxs-file-html', color: 'chocolate'}
-}
+};
 
 const fileInfoCache = {}
 
@@ -47,7 +47,17 @@ function getObjectsInfoFromServer() {
 				fileItem.find('div.spinner-border').remove();
 				fileItem.find('div.dropdown').removeClass("d-none");
 				
-				setUpCallbacks(fileItem, file.id);
+				var starredLink = fileItem.find('a.starred-link');
+				
+				if (file.isStarred) {
+					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
+					starredLink.data('is-starred', 'true');
+				} else {
+					starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
+					starredLink.data('is-starred', 'false');
+				}
+				
+				setUpFileCallbacks(fileItem, file.id);
 				
 				fileItem.find('a.open-link').text(file.name);
 				
@@ -61,6 +71,16 @@ function getObjectsInfoFromServer() {
 				folderItem.removeAttr('id');
 				folderItem.removeClass("d-none");
 
+				var starredLink = folderItem.find('a.starred-link');
+				
+				if (folder.isStarred) {
+					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
+					starredLink.data('is-starred', 'true');
+				} else {
+					starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
+					starredLink.data('is-starred', 'false');
+				}
+				
 				var link = folderItem.find('a').first();
 				link.text(folder.name);
 				link.attr('href', folder.link);
@@ -74,7 +94,7 @@ function getObjectsInfoFromServer() {
     });
 }
 
-function setUpCallbacks(fileItem, fileId) {
+function setUpFileCallbacks(fileItem, fileId) {
 	console.log(fileId);
 	const link = '/api/download/file/' + fileId;
 	//console.log(link);
@@ -126,6 +146,17 @@ function setUpCallbacks(fileItem, fileId) {
 		});
 	});
 	
+	fileItem.find('a.starred-link').off('click').on('click',function() {
+		if ($(this).data('is-starred') === 'false') {
+			sendAddToStarredRequest(fileId, $(this));
+			$('#addedToStarredMsg').toast('show');
+		} else {
+			sendRemoveFromStarredRequest(fileId, $(this));
+			$('#removedFromStarredMsg').toast('show');
+		} 
+			
+	});
+	
 }
 
 function sendRenameFileRequest(fileId, newFilename, fileItem) {
@@ -134,7 +165,35 @@ function sendRenameFileRequest(fileId, newFilename, fileItem) {
         type: 'PATCH',
 		data: { newFilename: newFilename },
 		success: function(newFileId) {
-			setUpCallbacks(fileItem, newFileId);
+			setUpFileCallbacks(fileItem, newFileId);
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
+}
+
+function sendAddToStarredRequest(fileId, starredLink) {
+	$.ajax({
+        url: '/api/starred/add/' + fileId, 
+        type: 'POST',
+		success: function() {
+			starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
+			starredLink.data('is-starred', 'true');
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
+}
+
+function sendRemoveFromStarredRequest(fileId, starredLink) {
+	$.ajax({
+        url: '/api/starred/remove/' + fileId, 
+        type: 'POST',
+		success: function() {
+			starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
+			starredLink.data('is-starred', 'false');
 		},
 		error: function(response) {
 			console.log(response);
@@ -151,7 +210,7 @@ function addNewFileItem(event) {
 	fileItem.removeClass("d-none");
 	 
 	var filenameWithoutExtension = file.name.substring(0, file.name.lastIndexOf('.'));
-	var fileExtension = file.name.split('.').pop();;
+	var fileExtension = file.name.split('.').pop();
 	fileItem.find('a.open-link').text(filenameWithoutExtension);
 	
 	setUpFileIcon(fileItem, fileExtension);
@@ -160,7 +219,7 @@ function addNewFileItem(event) {
 	var spiner = fileItem.find('div.spinner-border');
 	
 	function onUploadingSuccess(fileUploadingResponse) {
-		setUpCallbacks(fileItem, fileUploadingResponse.fileId);
+		setUpFileCallbacks(fileItem, fileUploadingResponse.fileId);
 		$("#fileWasUploadedMsg").toast('show');
 		spiner.remove();
 		dropdown.removeClass("d-none");

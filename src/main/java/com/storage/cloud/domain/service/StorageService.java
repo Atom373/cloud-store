@@ -11,7 +11,7 @@ import com.storage.cloud.security.model.User;
 
 public interface StorageService {
 
-	ObjectsDto getAllObjectsFrom(String dirName, User user);
+	ObjectsDto getObjectsFrom(String directory, User user);
 	
 	Resource getFileResource(String bucketName, String objectName);
 	
@@ -19,7 +19,7 @@ public interface StorageService {
 	
 	void createBucketFor(User user);
 	
-	String createFolder(String dirName, String foldername, User user);
+	String createFolder(String directory, String foldername, User user);
 	
 	String save(MultipartFile file, String directory, User user);
 	

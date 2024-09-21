@@ -20,6 +20,11 @@ public class FileUtils {
 		return path[path.length - 1];
 	}
 	
+	public String getFullFilename(String objectName) {
+		int i = objectName.lastIndexOf('/');
+		return objectName.substring(i+1, objectName.length());
+	}
+	
 	public String createObjectId(User user, String objectName) {
 		return encodingService.encode(user.getId().toString(), objectName);
 	}
@@ -37,6 +42,7 @@ public class FileUtils {
 	}
 	
 	public String getFilename(String objectName) {
+		System.out.println("in get filename = "+objectName);
 		return objectName.substring(0, objectName.lastIndexOf('.'));
 	}
 	

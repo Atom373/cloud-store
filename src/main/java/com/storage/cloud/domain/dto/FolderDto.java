@@ -7,4 +7,5 @@ public class FolderDto {
 
 	private final String name;
 	private final String link;
+	private final boolean isStarred;
 }

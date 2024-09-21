@@ -162,21 +162,32 @@
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
 									<li><a class="dropdown-item" href="#"><i class='bx bx-download'
-												style="font-size: 20px;"></i> Download</a></li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-edit-alt'
-												style="font-size: 20px;"></i> Rename</a></li>
+												style="font-size: 20px;"></i> Download</a>
+									</li>
+									<li>
+										<a class="dropdown-item" href="#"><i class='bx bx-edit-alt'
+												style="font-size: 20px;"></i> Rename</a>
+									</li>
 									<li>
 										<hr class="dropdown-divider">
 									</li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-share'
-												style="font-size: 20px;"></i> Share</a></li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-info-circle'
-												style="font-size: 20px;"></i> Folder info</a></li>
+									<li>
+										<a class="dropdown-item" href="#"><i class='bx bx-share'
+												style="font-size: 20px;"></i> Share</a>
+									</li>
+									<li>
+										<a class="dropdown-item" href="#"><i class='bx bx-info-circle'
+												style="font-size: 20px;"></i> Folder info</a>
+									</li>
+									<li><a class="dropdown-item starred-link" href="#"><i class='bx'
+												style="font-size: 20px;"></i> Add to starred</a></li>
 									<li>
 										<hr class="dropdown-divider">
 									</li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-trash'
-												style="font-size: 20px;"></i> Move to trash</a></li>
+									<li>
+										<a class="dropdown-item" href="#"><i class='bx bx-trash'
+												style="font-size: 20px;"></i> Move to trash</a>
+									</li>
 								</ul>
 							</div>
 						</div>
@@ -212,7 +223,7 @@
 												style="font-size: 20px;"></i> Share</a></li>
 									<li><a class="dropdown-item info-link" href="#"><i class='bx bx-info-circle'
 												style="font-size: 20px;"></i> File info</a></li>
-									<li><a class="dropdown-item starred-link" href="#"><i class='bx bx-star'
+									<li><a class="dropdown-item starred-link" href="#"><i class='bx'
 												style="font-size: 20px;"></i> Add to starred</a></li>
 									<li>
 										<hr class="dropdown-divider">
@@ -260,6 +271,28 @@
 			<div class="toast-body d-flex align-items-center">
 				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
 				<span>Link was copied to clipboard</span>
+			</div>
+			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
+	
+	<div id="addedToStarredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+		aria-atomic="true" data-bs-delay="4000">
+		<div class="d-flex">
+			<div class="toast-body d-flex align-items-center">
+				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+				<span>Added to starred</span>
+			</div>
+			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
+	
+	<div id="removedFromStarredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+		aria-atomic="true" data-bs-delay="4000">
+		<div class="d-flex">
+			<div class="toast-body d-flex align-items-center">
+				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+				<span>Removed from starred</span>
 			</div>
 			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>

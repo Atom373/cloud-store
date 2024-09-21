@@ -57,7 +57,7 @@ public class ObjectController {
 		return new FileUploadingResponse(objectId, percentOfUsedSpace, formattedUsedSpace);
 	}
 	
-	@GetMapping("/download/file/{encodedObjectId}") // file Id consists of bucket name and objectName
+	@GetMapping("/download/file/{encodedObjectId}") // object Id consists of bucket name and object name
     public ResponseEntity<Resource> downloadFile(@PathVariable String encodedObjectId) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
@@ -70,7 +70,7 @@ public class ObjectController {
                 .body(resource);
     }
 	
-	@GetMapping("/open/file/{encodedObjectId}") // file Id consists of bucket name and objectName
+	@GetMapping("/open/file/{encodedObjectId}") // object Id consists of bucket name and object name
     public ResponseEntity<Resource> openFile(@PathVariable String encodedObjectId) throws IOException {
 		System.out.println("in open file method: " + encodedObjectId);
 		ObjectId objectId = encodingService.decode(encodedObjectId);
@@ -101,7 +101,12 @@ public class ObjectController {
 	public ObjectsDto getAllUsersObjects(HttpSession session,
 			   							 @AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
-		return storageService.getAllObjectsFrom(currentDir, user);
+		return storageService.getObjectsFrom(currentDir, user);
+	}
+	
+	@GetMapping("/object/starred")
+	public ObjectsDto getUsersStarredObjects(@AuthenticationPrincipal User user) {
+		return storageService.getStarredObjects(user);
 	}
 	
 	@GetMapping("/object/meta/{encodedObjectId}")
@@ -113,8 +118,13 @@ public class ObjectController {
 	@PostMapping("/starred/add/{encodedObjectId}")
 	public void addToStarred(@PathVariable String encodedObjectId) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
-		
 		storageService.addToStarred(objectId.bucket(), objectId.name());
+	}
+	
+	@PostMapping("/starred/remove/{encodedObjectId}")
+	public void removeFromStarred(@PathVariable String encodedObjectId) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		storageService.removeFromStarred(objectId.bucket(), objectId.name());
 	}
 	
 	@PostMapping("/folder")

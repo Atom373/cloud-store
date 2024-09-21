@@ -20,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.storage.cloud.domain.dto.FileDto;
 import com.storage.cloud.domain.dto.FolderDto;
 import com.storage.cloud.domain.dto.ObjectsDto;
+import com.storage.cloud.domain.mapper.FileDtoMapper;
+import com.storage.cloud.domain.mapper.FolderDtoMapper;
 import com.storage.cloud.domain.service.StorageService;
 import com.storage.cloud.domain.utils.FileUtils;
 import com.storage.cloud.security.model.User;
@@ -48,42 +50,94 @@ public class MinioStorageService implements StorageService {
 	private final MinioClient client;
 	private final FileUtils fileUtils;
 	private final UserService userService;
+	private final FileDtoMapper fileDtoMapper;
+	private final FolderDtoMapper folderDtoMapper;
 	
 	@Override
-	public ObjectsDto getAllObjectsFrom(String directory, User user) {
+	public ObjectsDto getObjectsFrom(String directory, User user) {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
 		
+		String bucket = user.getId().toString();
+		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
-			    		.bucket(user.getId().toString())
+			    		.bucket(bucket)
 			    		.prefix(directory)
 			    		.build()
 		);
-		results.forEach(result -> {
+		
+		for (Result<Item> result : results) {
 			try {
 				String objectName = result.get().objectName();
 				String relativeName = objectName.substring(directory.length(), objectName.length());
 				
+				Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+				
+				if (Boolean.parseBoolean(meta.get("is-trash"))) {
+					continue;
+				}
+				
 				if (relativeName.contains("/")) { // if contains '/' its a folder
-					String foldername = relativeName.split("/")[0];
-					String linkToFolder = "/main?path=" + directory + foldername + "/";
-					folders.add(new FolderDto(foldername, linkToFolder));
+					FolderDto dto = folderDtoMapper.map(relativeName, directory, meta);
+					folders.add(dto);
 				} else if (!relativeName.isEmpty()) {
-					String filename = fileUtils.getFilename(objectName);
-					String extension = fileUtils.getFileExtension(objectName);
-					String fileId = fileUtils.createObjectId(user, objectName);
-					files.add(new FileDto(fileId, filename, extension));
+					FileDto dto = fileDtoMapper.map(relativeName, user, meta);
+					files.add(dto);
 				}
 			} catch (Exception e) {
 				log.error(e.getLocalizedMessage());
 			} 
-		});
+		}
 		files.sort(Comparator.comparing(FileDto::getName));
 		
 		return new ObjectsDto(files, folders);
 	}
 
+	public ObjectsDto getStarredObjects(User user) {
+		List<FileDto> files = new ArrayList<>();
+		Set<FolderDto> folders = new HashSet<>();
+		
+		String bucket = user.getId().toString();
+		
+		Iterable<Result<Item>> results = client.listObjects(
+			    ListObjectsArgs.builder()
+			    		.bucket(bucket)
+			    		.build()
+		);
+		
+		for (Result<Item> result : results) {
+			try {
+				String objectName = result.get().objectName();
+				
+				Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+				
+				if (Boolean.parseBoolean(meta.get("is-trash"))) {
+					continue;
+				}
+				
+				if (!Boolean.parseBoolean(meta.get("is-starred"))) {
+					continue;
+				}
+				
+				if (objectName.endsWith("/")) { // if ends with '/' its a folder
+					FolderDto dto = folderDtoMapper.map(objectName, meta);
+					folders.add(dto);
+				} else {
+					String fullFilename = fileUtils.getFullFilename(objectName);
+					FileDto dto = fileDtoMapper.map(fullFilename, user, meta);
+					files.add(dto);
+				}
+			} catch (Exception e) {
+				log.error(e.getLocalizedMessage());
+				throw new RuntimeException(e);
+			} 
+		}
+		files.sort(Comparator.comparing(FileDto::getName));
+		
+		return new ObjectsDto(files, folders);
+	}
+	
 	@Override
 	public Resource getFileResource(String bucket, String objectName) {
 		try {
@@ -132,12 +186,14 @@ public class MinioStorageService implements StorageService {
 	public String createFolder(String directory, String foldername, User user) {
         String folderObject = directory + foldername + "/";
 
+        Map<String, String> meta = this.createMetadataFor(foldername, directory);
         try {
 			client.putObject(
 			    PutObjectArgs.builder()
 			        .bucket(user.getId().toString())
 			        .object(folderObject)
 			        .stream(new ByteArrayInputStream(new byte[0]), 0, -1)
+			        .headers(meta)
 			        .build()
 			);
 		} catch (Exception e) {
@@ -279,12 +335,27 @@ public class MinioStorageService implements StorageService {
 		
 		String path = directory.isEmpty() ? "My Drive" : directory;
 		
-		String extension = file.getOriginalFilename().split("\\.")[1];
+		String extension = fileUtils.getFileExtension(file.getOriginalFilename());
 		
 		meta.put("x-amz-meta-path", path);
 		meta.put("x-amz-meta-type", extension.toUpperCase());
 		meta.put("x-amz-meta-size", fileUtils.formatSize(file.getSize()));
 		meta.put("x-amz-meta-uploaded", this.getCurrentDate());
+		meta.put("x-amz-meta-viewed", "-");
+		meta.put("x-amz-meta-is-starred", Boolean.FALSE.toString());
+		meta.put("x-amz-meta-is-trash", Boolean.FALSE.toString());
+
+		return meta;
+	}
+	
+	private Map<String, String> createMetadataFor(String foldername, String directory) {
+		Map<String, String> meta = new HashMap<>();
+		
+		String path = directory.isEmpty() ? "My Drive" : directory;
+		
+		meta.put("x-amz-meta-path", path);
+		meta.put("x-amz-meta-type", "Folder");
+		meta.put("x-amz-meta-created", this.getCurrentDate());
 		meta.put("x-amz-meta-viewed", "-");
 		meta.put("x-amz-meta-is-starred", Boolean.FALSE.toString());
 		meta.put("x-amz-meta-is-trash", Boolean.FALSE.toString());
