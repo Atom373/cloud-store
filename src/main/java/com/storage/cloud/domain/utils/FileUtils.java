@@ -2,7 +2,8 @@ package com.storage.cloud.domain.utils;
 
 import org.springframework.stereotype.Component;
 
-import com.storage.cloud.domain.service.FileIdEncodingService;
+import com.storage.cloud.domain.model.ObjectId;
+import com.storage.cloud.domain.service.ObjectIdEncodingService;
 import com.storage.cloud.security.model.User;
 
 import lombok.RequiredArgsConstructor;
@@ -11,16 +12,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FileUtils {
 
-	private final FileIdEncodingService encodingService;
+	private final ObjectIdEncodingService encodingService;
 	
-	public String getFilenameFromFileId(String[] fileId) {
-		String objectName = fileId[1];
+	public String getFullFilename(ObjectId objectId) {
+		String objectName = objectId.name();
 		String[] path = objectName.split("/");
 		return path[path.length - 1];
 	}
 	
-	public String createFileId(User user, String objectName) {
-		return encodingService.encode(user.getId()+"", objectName);
+	public String createObjectId(User user, String objectName) {
+		return encodingService.encode(user.getId().toString(), objectName);
 	}
 	
 	public String getDir(String objectName) {
@@ -31,7 +32,12 @@ public class FileUtils {
 	}
 	
 	public String getFileExtension(String objectName) {
-		return objectName.split("\\.")[1];
+		String[] tmp = objectName.split("\\.");
+		return tmp[tmp.length - 1];
+	}
+	
+	public String getFilename(String objectName) {
+		return objectName.substring(0, objectName.lastIndexOf('.'));
 	}
 	
 	public String formatSize(long size) {

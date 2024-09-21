@@ -23,8 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.storage.cloud.domain.dto.FileUploadingResponse;
 import com.storage.cloud.domain.dto.ObjectsDto;
-import com.storage.cloud.domain.service.FileIdEncodingService;
-import com.storage.cloud.domain.service.StorageService;
+import com.storage.cloud.domain.model.ObjectId;
+import com.storage.cloud.domain.service.ObjectIdEncodingService;
+import com.storage.cloud.domain.service.impl.MinioStorageService;
 import com.storage.cloud.domain.utils.FileUtils;
 import com.storage.cloud.domain.utils.UserDataUtils;
 import com.storage.cloud.security.model.User;
@@ -37,8 +38,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ObjectController {
 
-	private final StorageService storageService;
-	private final FileIdEncodingService encodingService;
+	private final MinioStorageService storageService;
+	private final ObjectIdEncodingService encodingService;
 	private final FileUtils fileUtils;
 	private final UserDataUtils userDataUtils;
 	
@@ -48,52 +49,52 @@ public class ObjectController {
 						   					@AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
 		
-		String fileId = storageService.save(file, currentDir, user);
+		String objectId = storageService.save(file, currentDir, user);
 		
 		String percentOfUsedSpace = userDataUtils.convertToPercents(user.getUsedDiskSpace());
 		String formattedUsedSpace = fileUtils.formatSize(user.getUsedDiskSpace());
 		
-		return new FileUploadingResponse(fileId, percentOfUsedSpace, formattedUsedSpace);
+		return new FileUploadingResponse(objectId, percentOfUsedSpace, formattedUsedSpace);
 	}
 	
-	@GetMapping("/download/file/{encodedFileId}") // file Id consists of bucket name and objectName
-    public ResponseEntity<Resource> downloadFile(@PathVariable String encodedFileId) {
-		String[] fileId = encodingService.decode(encodedFileId);
+	@GetMapping("/download/file/{encodedObjectId}") // file Id consists of bucket name and objectName
+    public ResponseEntity<Resource> downloadFile(@PathVariable String encodedObjectId) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
-		String filename = fileUtils.getFilenameFromFileId(fileId);
+		String filename = fileUtils.getFullFilename(objectId);
 		
-        Resource resource = storageService.getFileResource(fileId[0], fileId[1]);
+        Resource resource = storageService.getFileResource(objectId.bucket(), objectId.name());
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachement; filename=\"" + filename + "\"")
                 .body(resource);
     }
 	
-	@GetMapping("/open/file/{encodedFileId}") // file Id consists of bucket name and objectName
-    public ResponseEntity<Resource> openFile(@PathVariable String encodedFileId) throws IOException {
-		System.out.println("in open file method: " + encodedFileId);
-		String[] fileId = encodingService.decode(encodedFileId);
+	@GetMapping("/open/file/{encodedObjectId}") // file Id consists of bucket name and objectName
+    public ResponseEntity<Resource> openFile(@PathVariable String encodedObjectId) throws IOException {
+		System.out.println("in open file method: " + encodedObjectId);
+		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
-		String filename = fileUtils.getFilenameFromFileId(fileId);
+		String filename = fileUtils.getFullFilename(objectId);
 		String contentType = Files.probeContentType(Paths.get(filename));
 		
-		storageService.updateLastViewedDate(fileId[0], fileId[1]);
+		storageService.updateLastViewedDate(objectId.bucket(), objectId.name());
 		
-        Resource resource = storageService.getFileResource(fileId[0], fileId[1]);
+        Resource resource = storageService.getFileResource(objectId.bucket(), objectId.name());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .body(resource);
     }
 	
-	@PatchMapping("/rename/file/{encodedFileId}")
-	public String renameFile(@PathVariable String encodedFileId,
+	@PatchMapping("/rename/file/{encodedObjectId}")
+	public String renameFile(@PathVariable String encodedObjectId,
 							 @RequestParam String newFilename) {
-		String[] fileId = encodingService.decode(encodedFileId);
+		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
-		String newObjectName = storageService.rename(fileId[0], fileId[1], newFilename);
+		String newObjectName = storageService.rename(objectId.bucket(), objectId.name(), newFilename);
 		
-		return encodingService.encode(fileId[0], newObjectName);
+		return encodingService.encode(objectId.bucket(), newObjectName);
 	}
 	
 	@GetMapping("/object/all")
@@ -105,8 +106,15 @@ public class ObjectController {
 	
 	@GetMapping("/object/meta/{encodedObjectId}")
 	public Map<String, String> getObjectMetadata(@PathVariable String encodedObjectId) {
-		String[] fileId = encodingService.decode(encodedObjectId);
-		return storageService.getObjectMeta(fileId[0], fileId[1]);
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		return storageService.getObjectMeta(objectId.bucket(), objectId.name());
+	}
+	
+	@PostMapping("/starred/add/{encodedObjectId}")
+	public void addToStarred(@PathVariable String encodedObjectId) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		
+		storageService.addToStarred(objectId.bucket(), objectId.name());
 	}
 	
 	@PostMapping("/folder")

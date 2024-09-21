@@ -50,29 +50,30 @@ public class MinioStorageService implements StorageService {
 	private final UserService userService;
 	
 	@Override
-	public ObjectsDto getAllObjectsFrom(String dirName, User user) {
+	public ObjectsDto getAllObjectsFrom(String directory, User user) {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
-			    		.bucket(user.getId()+"")
-			    		.prefix(dirName)
+			    		.bucket(user.getId().toString())
+			    		.prefix(directory)
 			    		.build()
 		);
 		results.forEach(result -> {
 			try {
 				String objectName = result.get().objectName();
-				String relativeName = objectName.substring(dirName.length(), objectName.length());
+				String relativeName = objectName.substring(directory.length(), objectName.length());
 				
 				if (relativeName.contains("/")) { // if contains '/' its a folder
 					String foldername = relativeName.split("/")[0];
-					String linkToFolder = "/main?path=" + dirName + foldername + "/";
+					String linkToFolder = "/main?path=" + directory + foldername + "/";
 					folders.add(new FolderDto(foldername, linkToFolder));
 				} else if (!relativeName.isEmpty()) {
-					String[] filename = relativeName.split("\\.");
-					String fileId = fileUtils.createFileId(user, objectName);
-					files.add(new FileDto(fileId, filename[0], filename[1]));
+					String filename = fileUtils.getFilename(objectName);
+					String extension = fileUtils.getFileExtension(objectName);
+					String fileId = fileUtils.createObjectId(user, objectName);
+					files.add(new FileDto(fileId, filename, extension));
 				}
 			} catch (Exception e) {
 				log.error(e.getLocalizedMessage());
@@ -119,7 +120,7 @@ public class MinioStorageService implements StorageService {
 		try {
 			client.makeBucket(
 				MakeBucketArgs.builder()
-					.bucket(user.getId()+"")
+					.bucket(user.getId().toString())
 					.build()
 			);
 		} catch (Exception e) {
@@ -128,13 +129,13 @@ public class MinioStorageService implements StorageService {
 	}
 	
 	@Override
-	public String createFolder(String dirName, String foldername, User user) {
-        String folderObject = dirName + foldername + "/";
+	public String createFolder(String directory, String foldername, User user) {
+        String folderObject = directory + foldername + "/";
 
         try {
 			client.putObject(
 			    PutObjectArgs.builder()
-			        .bucket(user.getId()+"")
+			        .bucket(user.getId().toString())
 			        .object(folderObject)
 			        .stream(new ByteArrayInputStream(new byte[0]), 0, -1)
 			        .build()
@@ -146,14 +147,14 @@ public class MinioStorageService implements StorageService {
 	}
 	
 	@Override
-	public String save(MultipartFile file, String dirName, User user){
-		String fileObject = dirName + file.getOriginalFilename();
-		Map<String, String> meta = this.createMetadataFor(file, dirName);
+	public String save(MultipartFile file, String directory, User user){
+		String fileObject = directory + file.getOriginalFilename();
+		Map<String, String> meta = this.createMetadataFor(file, directory);
 		log.info(fileObject);
 		try {
 			client.putObject(
 		        PutObjectArgs.builder()
-		        	.bucket(user.getId()+"")
+		        	.bucket(user.getId().toString())
 		        	.object(fileObject)
 		        	.stream(file.getInputStream(), file.getSize(), -1)
 	                .contentType(file.getContentType())
@@ -164,13 +165,11 @@ public class MinioStorageService implements StorageService {
 			log.error(e.getLocalizedMessage());
 		} 
 		userService.increaseUsedDiskSpace(user, file.getSize());
-		return fileUtils.createFileId(user, fileObject);
+		return fileUtils.createObjectId(user, fileObject);
 	}
 
 	@Override
 	public String rename(String bucket, String objectName, String newFilename) {
-		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
-		System.out.println("meta in rename: " + meta);
 		String dir = fileUtils.getDir(objectName);
 		String extension = fileUtils.getFileExtension(objectName);
 		
@@ -201,10 +200,16 @@ public class MinioStorageService implements StorageService {
 		return newObjectName;
 	}
 
+	@Override
+	public void delete(String filename, User user) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	public void updateLastViewedDate(String bucket, String objectName) {
 		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
 		
-		Map<String, String> newMeta = this.getMetaWithStandardKeyNames(meta);
+		Map<String, String> updatedMeta = this.getMetaWithStandardKeyNames(meta);
 		
 		String viewedDate = meta.get("viewed");
 		String newViewedDate = this.getCurrentDate();
@@ -212,16 +217,51 @@ public class MinioStorageService implements StorageService {
 		if (viewedDate != null && viewedDate.equals(newViewedDate))
 			return; 
 		
-		newMeta.put("x-amz-metadata-directive", "REPLACE");
-		newMeta.put("x-amz-meta-viewed", newViewedDate);
+		updatedMeta.put("x-amz-meta-viewed", newViewedDate); 
 		
-		System.out.println("new meta is: " + newMeta);
+		System.out.println("new meta is: " + updatedMeta);
+		
+		this.updateMeta(bucket, objectName, updatedMeta);
+	}
+	
+	public void addToStarred(String bucket, String objectName) {
+		this.changeIsStarredStatus(bucket, objectName, true);
+	}
+	
+	public void removeFromStarred(String bucket, String objectName) {
+		this.changeIsStarredStatus(bucket, objectName, false);
+	}
+	
+	private void changeIsStarredStatus(String bucket, String objectName, Boolean isStarred) {
+		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+		
+		Map<String, String> updatedMeta = this.getMetaWithStandardKeyNames(meta);
+		
+		updatedMeta.put("x-amz-meta-is-starred", isStarred.toString()); 
+		
+		System.out.println("new meta is: " + updatedMeta);
+		
+		this.updateMeta(bucket, objectName, updatedMeta);
+	}
+	
+	private Map<String, String> getMetaWithStandardKeyNames(Map<String, String> meta) {
+		Map<String, String> updatedMeta = new HashMap<>();
+		
+		meta.forEach((key, value) -> {
+			String standardKey = "x-amz-meta-" + key;
+			updatedMeta.put(standardKey, value);
+		});
+		return updatedMeta;
+	}
+	
+	private void updateMeta(String bucket, String objectName, Map<String, String> updatedMeta) {
+		updatedMeta.put("x-amz-metadata-directive", "REPLACE");
 		try {
 			client.copyObject(
 	            CopyObjectArgs.builder()
 	                .bucket(bucket)
 	                .object(objectName)
-	                .headers(newMeta) 
+	                .headers(updatedMeta) 
 	                .source(CopySource.builder()
 	                    .bucket(bucket)
 	                    .object(objectName)
@@ -234,26 +274,10 @@ public class MinioStorageService implements StorageService {
 		} 
 	}
 	
-	@Override
-	public void delete(String filename, User user) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	private Map<String, String> getMetaWithStandardKeyNames(Map<String, String> meta) {
-		Map<String, String> newMeta = new HashMap<>();
-		
-		meta.forEach((key, value) -> {
-			String standardKey = "x-amz-meta-" + key;
-            newMeta.put(standardKey, value);
-		});
-		return newMeta;
-	}
-	
-	private Map<String, String> createMetadataFor(MultipartFile file, String dirName) {
+	private Map<String, String> createMetadataFor(MultipartFile file, String directory) {
 		Map<String, String> meta = new HashMap<>();
 		
-		String path = dirName.isEmpty() ? "My Drive" : dirName;
+		String path = directory.isEmpty() ? "My Drive" : directory;
 		
 		String extension = file.getOriginalFilename().split("\\.")[1];
 		
@@ -262,7 +286,9 @@ public class MinioStorageService implements StorageService {
 		meta.put("x-amz-meta-size", fileUtils.formatSize(file.getSize()));
 		meta.put("x-amz-meta-uploaded", this.getCurrentDate());
 		meta.put("x-amz-meta-viewed", "-");
-		
+		meta.put("x-amz-meta-is-starred", Boolean.FALSE.toString());
+		meta.put("x-amz-meta-is-trash", Boolean.FALSE.toString());
+
 		return meta;
 	}
 	

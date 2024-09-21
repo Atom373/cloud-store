@@ -72,33 +72,14 @@
 		<div class="row">
 			<!-- Sidebar -->
 			<div class="col-2 d-flex flex-column border-end border-2 vh-100">
-				<!-- Add button dropdown -->
+				<!-- Add button link -->
 				<div class="dropdown me-2 d-flex mt-2">
-					<button class="btn btn-secondary d-flex justify-content-start my-2" type="button"
-						data-bs-toggle="dropdown" aria-expanded="false">
+					<a href="/main" class="btn btn-secondary d-flex justify-content-start my-2">
 						<i class='bx bx-plus-circle me-1' style="font-size: 28px;"></i> <span class="fs-5">Add</span>
-					</button>
-					<ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
-						<li>
-							<button class="dropdown-item" id="newFolderBtn">
-								<i class='bx bx-folder-plus' style="font-size: 20px;"></i> New Folder
-							</button>
-						</li>
-						<li>
-							<hr class="dropdown-divider">
-						</li>
-						<li>
-							<button class="dropdown-item" id="fileUploadBtn">
-								<i class='bx bx-cloud-upload' style="font-size: 20px;"></i> Upload File
-							</button>
-							<input type="file" class='d-none' id='fileInput'>
-						</li>
-						<li><a class="dropdown-item" href="#"><i class='bx bx-cloud-upload'
-									style="font-size: 20px;"></i> Upload Folder</a></li>
-					</ul>
+					</a>
 				</div>
 
-				<a href="/main" class="btn btn-dark d-flex justify-content-start bg-primary my-2">
+				<a href="/main" class="btn btn-dark d-flex justify-content-start my-2">
 					<i class='bx bx-hdd me-2' style="font-size: 24px;"></i> My Drive
 				</a>
 
@@ -106,45 +87,20 @@
 					<i class='bx bx-time-five me-2' style="font-size: 24px;"></i> Recent
 				</a>
 
-				<a href="/starred" class="btn btn-dark d-flex justify-content-start my-2">
+				<a href="/starred" class="btn btn-dark d-flex justify-content-start bg-primary my-2">
 					<i class='bx bx-star me-2' style="font-size: 24px;"></i> Starred
 				</a>
 
-				<a href="trash" class="btn btn-dark d-flex justify-content-start my-2">
+				<a href="/trash" class="btn btn-dark d-flex justify-content-start my-2">
 					<i class='bx bx-trash me-2' style="font-size: 24px;"></i>Trash
 				</a>
-
-				<!-- Disk load-->
-				<div class="progress my-2" role="progressbar" aria-label="Basic example" aria-valuenow="25"
-					aria-valuemin="0" aria-valuemax="100">
-					<div class="progress-bar" th:style="'width:' + ${percentOfUsedSpace} + ';'"></div>
-				</div>
-				<div class="text-center used-space-label" th:text="${usedDiskSpace} + ' of 5 GB used'">
-					1.5 GB of 5 GB used
-				</div>
+				
 			</div>
 
 			<!-- File area-->
 			<div class="col-10 bg-dark d-flex p-4 flex-column">
-				<div class="bg-body-tertiary rounded-4 flex-grow-1">
-					<!-- Breadcrumb -->
-					<div class="bg-dark m-3 p-3 pb-1 rounded-4 d-flex">
-						<nav class="flex-grow-1" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-							<ol class="breadcrumb">
-								<li class="breadcrumb-item"
-									th:classappend="${#lists.isEmpty(breadcrumbs) ? 'active' : ''}">
-									<a href="/main">My Drive</a>
-								</li>
-								<li class="breadcrumb-item" th:each="breadcrumb, iterStat : ${breadcrumbs}"
-									th:classappend="${iterStat.last ? 'active' : ''}" th:attr="aria-current='page'">
-									<a th:unless="${iterStat.last}" th:href="@{/main(path=${breadcrumb.path})}"
-										th:text="${breadcrumb.foldername}"></a>
-									<span th:if="${iterStat.last}" th:text="${breadcrumb.foldername}"></span>
-								</li>
-							</ol>
-						</nav>
-					</div>
-
+				<div class="bg-body-tertiary rounded-4 flex-grow-1 pt-4">
+			
 					<!-- Folders -->
 					<span class="m-4 fs-5 text-decoration-underline">Folders</span>
 
@@ -189,7 +145,7 @@
 
 					<div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="files">
 						<!-- Invisible file item. Used only to create new file items -->
-						<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4 d-none">
+						<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4">
 							<i class='bx mx-1' style="font-size: 28px;"></i>
 							<a class="flex-grow-1 mx-1 fs-5 text-truncate text-reset text-decoration-none open-link" 
 								style='max-width: 212.250px ;' href="#">
@@ -213,7 +169,7 @@
 									<li><a class="dropdown-item info-link" href="#"><i class='bx bx-info-circle'
 												style="font-size: 20px;"></i> File info</a></li>
 									<li><a class="dropdown-item starred-link" href="#"><i class='bx bx-star'
-												style="font-size: 20px;"></i> Add to starred</a></li>
+												style="font-size: 20px;"></i> Remove from starred</a></li>
 									<li>
 										<hr class="dropdown-divider">
 									</li>
@@ -221,7 +177,6 @@
 												style="font-size: 20px;"></i> Move to trash</a></li>
 								</ul>
 							</div>
-							<div class="spinner-border ms-1" role="status" style='height: 1.5rem; width: 1.5rem'></div>
 						</div>
 						<!-- End of the invisible file item.-->
 					</div>
@@ -231,28 +186,6 @@
 	</div>
 
 	<!-- Toasts -->
-
-	<div id="fileUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="5000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i>
-				<span>An error occurred while loading the file!</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-
-	<div id="fileWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>File was uploaded</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
 
 	<div id="linkWasCopiedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
 		aria-atomic="true" data-bs-delay="4000">
@@ -267,21 +200,6 @@
 
 	<!-- Modals -->
 
-	<div class="modal" tabindex="-1" id="createFolderModal">
-		<div class="modal-dialog modal-dialog-centered modal-sm">
-			<div class="modal-content">
-				<div class="modal-body">
-					<h5 class="modal-title mb-3">New folder</h5>
-					<input id="foldernameInput" class="form-control" placeholder="Folder name">
-					<div class="d-flex justify-content-end mt-3">
-						<button type="button" class="btn btn-secondary mx-2" data-bs-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-primary" id="createNewFolderBtn">Create</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	
 	<div class="modal" tabindex="-1" id="renameFileModal">
 		<div class="modal-dialog modal-dialog-centered modal-sm">
 			<div class="modal-content">

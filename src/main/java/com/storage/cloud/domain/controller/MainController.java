@@ -4,7 +4,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.storage.cloud.domain.utils.BreadcrumbUtils;
@@ -16,7 +15,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/main")
 @RequiredArgsConstructor
 public class MainController {
 	
@@ -24,7 +22,7 @@ public class MainController {
 	private final FileUtils fileUtils; 
 	private final UserDataUtils userDataUtils;
 	
-	@GetMapping
+	@GetMapping("/main")
 	public String mainPage(@RequestParam(defaultValue = "") String path,
 						   Model model, HttpSession session, 
 						   @AuthenticationPrincipal User user) {
@@ -40,6 +38,11 @@ public class MainController {
 		model.addAttribute("usedDiskSpace", fileUtils.formatSize(usedSpace)); 
 		
 		return "main";
+	}
+	
+	@GetMapping("/starred")
+	public String starred() {
+		return "starred";
 	}
 
 }

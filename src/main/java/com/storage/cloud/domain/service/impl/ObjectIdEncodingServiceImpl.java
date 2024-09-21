@@ -6,13 +6,14 @@ import java.util.Base64.Encoder;
 
 import org.springframework.stereotype.Service;
 
-import com.storage.cloud.domain.service.FileIdEncodingService;
+import com.storage.cloud.domain.model.ObjectId;
+import com.storage.cloud.domain.service.ObjectIdEncodingService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class FileIdEncodingServiceImpl implements FileIdEncodingService {
+public class ObjectIdEncodingServiceImpl implements ObjectIdEncodingService {
 
 	private static Encoder encoder = Base64.getEncoder();
 	private static Decoder decoder = Base64.getDecoder();
@@ -25,10 +26,11 @@ public class FileIdEncodingServiceImpl implements FileIdEncodingService {
 	}
 
 	@Override
-	public String[] decode(String encodedFileId) {
+	public ObjectId decode(String encodedFileId) {
 		System.out.println("in decode: " + encodedFileId);
 		String decodedFileId = new String(decoder.decode(encodedFileId));
-		return decodedFileId.split(":");
+		String[] tmp = decodedFileId.split(":");
+		return new ObjectId(tmp[0], tmp[1]);
 	}
 	
 	
