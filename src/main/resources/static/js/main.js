@@ -157,6 +157,13 @@ function setUpFileCallbacks(fileItem, encodedFileId) {
 			
 	});
 	
+	fileItem.find('a.trash-link').off('click').on('click',function() {
+		fileItem.remove();
+		if ($('#files').children().length - 1 === 0) {
+			$('#noFilesLabel').removeClass("d-none");
+		}
+		sendAddToTrashRequest(encodedFileId);
+	});
 }
 
 function sendRenameFileRequest(encodedFileId, newFilename, fileItem) {
@@ -201,6 +208,19 @@ function sendRemoveFromStarredRequest(encodedFileId, starredLink) {
     });
 }
 
+function sendAddToTrashRequest(encodedFileId) {
+	$.ajax({
+        url: '/api/trash/add/' + encodedFileId, 
+        type: 'POST',
+		success: function() {
+			$('#movedToTrashMsg').toast('show');
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
+}
+
 function addNewFileItem(event) {
 	const file = event.target.files[0];
 	
@@ -219,6 +239,7 @@ function addNewFileItem(event) {
 	var spiner = fileItem.find('div.spinner-border');
 	
 	function onUploadingSuccess(fileUploadingResponse) {
+		console.log("After uploading: " + JSON.stringify(fileUploadingResponse, null, 2));
 		setUpFileCallbacks(fileItem, fileUploadingResponse.encodedFileId);
 		$("#fileWasUploadedMsg").toast('show');
 		spiner.remove();

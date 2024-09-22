@@ -121,12 +121,29 @@ function setUpFileCallbacks(fileItem, fileId) {
 		$('#removedFromStarredMsg').toast('show');
 	});
 	
+	fileItem.find('a.trash-link').off('click').on('click',function() {
+		fileItem.remove();
+		sendAddToTrashRequest(encodedFileId);
+	});
 }
 
 function sendRemoveFromStarredRequest(fileId, starredLink) {
 	$.ajax({
         url: '/api/starred/remove/' + fileId, 
         type: 'POST',
+		error: function(response) {
+			console.log(response);
+		}
+    });
+}
+
+function sendAddToTrashRequest(encodedFileId) {
+	$.ajax({
+        url: '/api/trash/add/' + encodedFileId, 
+        type: 'POST',
+		success: function() {
+			$('#movedToTrashMsg').toast('show');
+		},
 		error: function(response) {
 			console.log(response);
 		}

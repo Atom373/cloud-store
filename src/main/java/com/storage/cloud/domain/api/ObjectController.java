@@ -116,6 +116,11 @@ public class ObjectController {
 		return storageService.getStarredObjects(user);
 	}
 	
+	@GetMapping("/object/trashed")
+	public ObjectsDto getUsersTrashedObjects(@AuthenticationPrincipal User user) {
+		return storageService.getTrashedObjects(user);
+	}
+	
 	@GetMapping("/object/meta/{encodedObjectId}")
 	public Map<String, String> getObjectMetadata(@PathVariable String encodedObjectId) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
@@ -132,6 +137,18 @@ public class ObjectController {
 	public void removeFromStarred(@PathVariable String encodedObjectId) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		storageService.removeFromStarred(objectId.bucket(), objectId.name());
+	}
+	
+	@PostMapping("/trash/add/{encodedObjectId}")
+	public void addToTrash(@PathVariable String encodedObjectId) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		storageService.addToTrash(objectId.bucket(), objectId.name());
+	}
+	
+	@PostMapping("/trash/remove/{encodedObjectId}")
+	public void removeFromTrash(@PathVariable String encodedObjectId) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		storageService.removeFromTrash(objectId.bucket(), objectId.name());
 	}
 	
 	@PostMapping("/folder")

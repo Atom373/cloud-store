@@ -106,6 +106,10 @@ function setUpFileCallbacks(fileItem, fileId) {
 		} 
 	});
 	
+	fileItem.find('a.trash-link').off('click').on('click',function() {
+		fileItem.remove();
+		sendAddToTrashRequest(encodedFileId);
+	});
 }
 
 function sendRenameFileRequest(fileId, newFilename, fileItem) {
@@ -129,6 +133,19 @@ function sendAddToStarredRequest(fileId, starredLink) {
 		success: function() {
 			starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
 			starredLink.data('is-starred', 'true');
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
+}
+
+function sendAddToTrashRequest(encodedFileId) {
+	$.ajax({
+        url: '/api/trash/add/' + encodedFileId, 
+        type: 'POST',
+		success: function() {
+			$('#movedToTrashMsg').toast('show');
 		},
 		error: function(response) {
 			console.log(response);

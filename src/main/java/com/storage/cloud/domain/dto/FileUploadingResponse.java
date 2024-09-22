@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class FileUploadingResponse {
 
-	private final String fileId;
+	private final String encodedFileId;
 	private final String percentOfUsedSpace;
 	private final String formattedUsedSpace;
 }

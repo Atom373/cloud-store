@@ -131,8 +131,7 @@ public class MinioStorageService implements StorageService {
 					FolderDto dto = folderDtoMapper.map(objectName, meta);
 					folders.add(dto);
 				} else {
-					String fullFilename = fileUtils.getFullFilename(objectName);
-					FileDto dto = fileDtoMapper.map(fullFilename, user, meta);
+					FileDto dto = fileDtoMapper.map(objectName, user, meta);
 					files.add(dto);
 				}
 			} catch (Exception e) {
@@ -189,6 +188,46 @@ public class MinioStorageService implements StorageService {
 		return files.stream()
 				.map(sortable -> sortable.dto())
 				.toList();
+	}
+	
+	public ObjectsDto getTrashedObjects(User user) {
+		List<FileDto> files = new ArrayList<>();
+		Set<FolderDto> folders = new HashSet<>();
+		
+		String bucket = user.getId().toString();
+		
+		Iterable<Result<Item>> results = client.listObjects(
+			    ListObjectsArgs.builder()
+			    		.bucket(bucket)
+			    		.recursive(true)
+			    		.build()
+		);
+		
+		for (Result<Item> result : results) {
+			try {
+				String objectName = result.get().objectName();
+				
+				Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+				
+				if (!Boolean.parseBoolean(meta.get("is-trash"))) {
+					continue;
+				}
+				
+				if (objectName.endsWith("/")) { // if ends with '/' its a folder
+					FolderDto dto = folderDtoMapper.map(objectName, meta);
+					folders.add(dto);
+				} else {
+					FileDto dto = fileDtoMapper.map(objectName, user, meta);
+					files.add(dto);
+				}
+			} catch (Exception e) {
+				log.error(e.getLocalizedMessage());
+				throw new RuntimeException(e);
+			} 
+		}
+		files.sort(Comparator.comparing(FileDto::getName));
+		
+		return new ObjectsDto(files, folders);
 	}
 	
 	@Override
@@ -341,6 +380,14 @@ public class MinioStorageService implements StorageService {
 		this.changeIsStarredStatus(bucket, objectName, false);
 	}
 	
+	public void addToTrash(String bucket,  String objectName) {
+		this.changeIsTrashStatus(bucket, objectName, true);
+	}
+	
+	public void removeFromTrash(String bucket,  String objectName) {
+		this.changeIsTrashStatus(bucket, objectName, false);
+	}
+	
 	private void changeIsStarredStatus(String bucket, String objectName, Boolean isStarred) {
 		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
 		
@@ -349,6 +396,19 @@ public class MinioStorageService implements StorageService {
 		updatedMeta.put("x-amz-meta-is-starred", isStarred.toString()); 
 		
 		System.out.println("new meta is: " + updatedMeta);
+		
+		this.updateMeta(bucket, objectName, updatedMeta);
+	}
+	
+	private void changeIsTrashStatus(String bucket, String objectName, Boolean isTrash) {
+		Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+		
+		Map<String, String> updatedMeta = this.getMetaWithStandardKeyNames(meta);
+		
+		updatedMeta.put("x-amz-meta-is-trash", isTrash.toString()); 
+		updatedMeta.put("x-amz-meta-added-to-trash-date", this.getCurrentDate()); 
+		
+		System.out.println("Trash status: new meta is: " + updatedMeta);
 		
 		this.updateMeta(bucket, objectName, updatedMeta);
 	}
