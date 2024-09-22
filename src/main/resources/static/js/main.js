@@ -57,7 +57,7 @@ function getObjectsInfoFromServer() {
 					starredLink.data('is-starred', 'false');
 				}
 				
-				setUpFileCallbacks(fileItem, file.id);
+				setUpFileCallbacks(fileItem, file.encodedId);
 				
 				fileItem.find('a.open-link').text(file.name);
 				
@@ -94,13 +94,13 @@ function getObjectsInfoFromServer() {
     });
 }
 
-function setUpFileCallbacks(fileItem, fileId) {
-	console.log(fileId);
-	const link = '/api/download/file/' + fileId;
+function setUpFileCallbacks(fileItem, encodedFileId) {
+	console.log(encodedFileId);
+	const link = '/api/download/file/' + encodedFileId;
 	//console.log(link);
 	
 	const openLink = fileItem.find('a.open-link');
-	openLink.attr('href', '/api/open/file/' + fileId);
+	openLink.attr('href', '/api/open/file/' + encodedFileId);
 	openLink.attr('target', '_blank');
 	
 	fileItem.find('a.download-link').attr('href', link);
@@ -112,7 +112,7 @@ function setUpFileCallbacks(fileItem, fileId) {
 	
 	fileItem.find('a.info-link').off('click').on('click',function() {
 		$.ajax({
-	        url: '/api/object/meta/' + fileId, 
+	        url: '/api/object/meta/' + encodedFileId, 
 	        type: 'GET',
 			cache: false,
 	        success: function(meta) {
@@ -140,7 +140,7 @@ function setUpFileCallbacks(fileItem, fileId) {
 			
 			openLink.text(newFilename);
 			
-			sendRenameFileRequest(fileId, newFilename, fileItem);
+			sendRenameFileRequest(encodedFileId, newFilename, fileItem);
 			
 			$('#renameFileModal').modal('hide');
 		});
@@ -148,10 +148,10 @@ function setUpFileCallbacks(fileItem, fileId) {
 	
 	fileItem.find('a.starred-link').off('click').on('click',function() {
 		if ($(this).data('is-starred') === 'false') {
-			sendAddToStarredRequest(fileId, $(this));
+			sendAddToStarredRequest(encodedFileId, $(this));
 			$('#addedToStarredMsg').toast('show');
 		} else {
-			sendRemoveFromStarredRequest(fileId, $(this));
+			sendRemoveFromStarredRequest(encodedFileId, $(this));
 			$('#removedFromStarredMsg').toast('show');
 		} 
 			
@@ -159,13 +159,13 @@ function setUpFileCallbacks(fileItem, fileId) {
 	
 }
 
-function sendRenameFileRequest(fileId, newFilename, fileItem) {
+function sendRenameFileRequest(encodedFileId, newFilename, fileItem) {
 	$.ajax({
-        url: '/api/rename/file/' + fileId, 
+        url: '/api/rename/file/' + encodedFileId, 
         type: 'PATCH',
 		data: { newFilename: newFilename },
-		success: function(newFileId) {
-			setUpFileCallbacks(fileItem, newFileId);
+		success: function(newencodedFileId) {
+			setUpFileCallbacks(fileItem, newencodedFileId);
 		},
 		error: function(response) {
 			console.log(response);
@@ -173,9 +173,9 @@ function sendRenameFileRequest(fileId, newFilename, fileItem) {
     });
 }
 
-function sendAddToStarredRequest(fileId, starredLink) {
+function sendAddToStarredRequest(encodedFileId, starredLink) {
 	$.ajax({
-        url: '/api/starred/add/' + fileId, 
+        url: '/api/starred/add/' + encodedFileId, 
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
@@ -187,9 +187,9 @@ function sendAddToStarredRequest(fileId, starredLink) {
     });
 }
 
-function sendRemoveFromStarredRequest(fileId, starredLink) {
+function sendRemoveFromStarredRequest(encodedFileId, starredLink) {
 	$.ajax({
-        url: '/api/starred/remove/' + fileId, 
+        url: '/api/starred/remove/' + encodedFileId, 
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
@@ -219,7 +219,7 @@ function addNewFileItem(event) {
 	var spiner = fileItem.find('div.spinner-border');
 	
 	function onUploadingSuccess(fileUploadingResponse) {
-		setUpFileCallbacks(fileItem, fileUploadingResponse.fileId);
+		setUpFileCallbacks(fileItem, fileUploadingResponse.encodedFileId);
 		$("#fileWasUploadedMsg").toast('show');
 		spiner.remove();
 		dropdown.removeClass("d-none");

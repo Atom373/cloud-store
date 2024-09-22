@@ -17,6 +17,7 @@ public class FileUtils {
 	public String getFullFilename(ObjectId objectId) {
 		String objectName = objectId.name();
 		String[] path = objectName.split("/");
+		System.out.println("Full filename = " + path[path.length - 1]);
 		return path[path.length - 1];
 	}
 	
@@ -25,7 +26,7 @@ public class FileUtils {
 		return objectName.substring(i+1, objectName.length());
 	}
 	
-	public String createObjectId(User user, String objectName) {
+	public String createEncodedObjectId(User user, String objectName) {
 		return encodingService.encode(user.getId().toString(), objectName);
 	}
 	
@@ -43,6 +44,8 @@ public class FileUtils {
 	
 	public String getFilename(String objectName) {
 		System.out.println("in get filename = "+objectName);
+		if (objectName.contains("/"))
+			return objectName.substring(objectName.lastIndexOf('/')+1, objectName.lastIndexOf('.'));
 		return objectName.substring(0, objectName.lastIndexOf('.'));
 	}
 	

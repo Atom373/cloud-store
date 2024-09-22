@@ -53,6 +53,12 @@ public class MinioStorageService implements StorageService {
 	private final FileDtoMapper fileDtoMapper;
 	private final FolderDtoMapper folderDtoMapper;
 	
+	
+	private record SortableByViewedDto<T>(
+			T dto,
+			String lastViewed
+	) {}
+	
 	@Override
 	public ObjectsDto getObjectsFrom(String directory, User user) {
 		List<FileDto> files = new ArrayList<>();
@@ -82,7 +88,7 @@ public class MinioStorageService implements StorageService {
 					FolderDto dto = folderDtoMapper.map(relativeName, directory, meta);
 					folders.add(dto);
 				} else if (!relativeName.isEmpty()) {
-					FileDto dto = fileDtoMapper.map(relativeName, user, meta);
+					FileDto dto = fileDtoMapper.map(objectName, user, meta);
 					files.add(dto);
 				}
 			} catch (Exception e) {
@@ -103,6 +109,7 @@ public class MinioStorageService implements StorageService {
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
 			    		.bucket(bucket)
+			    		.recursive(true)
 			    		.build()
 		);
 		
@@ -136,6 +143,52 @@ public class MinioStorageService implements StorageService {
 		files.sort(Comparator.comparing(FileDto::getName));
 		
 		return new ObjectsDto(files, folders);
+	}
+	
+	public List<FileDto> getRecentlyViewedFiles(User user) {
+		List<SortableByViewedDto<FileDto>> files = new ArrayList<>();
+		
+		String bucket = user.getId().toString();
+		
+		Iterable<Result<Item>> results = client.listObjects(
+			    ListObjectsArgs.builder()
+			    		.bucket(bucket)
+			    		.recursive(true)
+			    		.build()
+		);
+		
+		for (Result<Item> result : results) {
+			try {
+				String objectName = result.get().objectName();
+				System.out.println("Recent: obj name = " + objectName);
+				Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+				
+				String lastViewed = meta.get("viewed");
+				
+				if (Boolean.parseBoolean(meta.get("is-trash"))) {
+					continue;
+				}
+				
+				if (lastViewed == null || lastViewed.equals("-"))
+					continue; 
+				
+				System.out.println("Recent: viewed = " + lastViewed);
+				if (!objectName.endsWith("/")) { // if doesn't end with '/' its a file
+					FileDto dto = fileDtoMapper.map(objectName, user, meta);
+					files.add(new SortableByViewedDto<FileDto>(dto, lastViewed));
+				}
+			} catch (Exception e) {
+				log.error(e.getLocalizedMessage());
+				throw new RuntimeException(e);
+			} 
+		}
+		files.sort(Comparator.comparing(SortableByViewedDto::lastViewed));
+		
+		files = files.subList(0, Math.min(12, files.size()));
+		
+		return files.stream()
+				.map(sortable -> sortable.dto())
+				.toList();
 	}
 	
 	@Override
@@ -221,7 +274,7 @@ public class MinioStorageService implements StorageService {
 			log.error(e.getLocalizedMessage());
 		} 
 		userService.increaseUsedDiskSpace(user, file.getSize());
-		return fileUtils.createObjectId(user, fileObject);
+		return fileUtils.createEncodedObjectId(user, fileObject);
 	}
 
 	@Override

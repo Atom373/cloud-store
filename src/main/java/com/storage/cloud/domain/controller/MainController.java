@@ -44,5 +44,10 @@ public class MainController {
 	public String starred() {
 		return "starred";
 	}
+	
+	@GetMapping("/recent")
+	public String recent() {
+		return "recent";
+	}
 
 }

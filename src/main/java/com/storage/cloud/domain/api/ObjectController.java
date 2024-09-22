@@ -3,6 +3,7 @@ package com.storage.cloud.domain.api;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.io.Resource;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.storage.cloud.domain.dto.FileDto;
 import com.storage.cloud.domain.dto.FileUploadingResponse;
 import com.storage.cloud.domain.dto.ObjectsDto;
 import com.storage.cloud.domain.model.ObjectId;
@@ -55,6 +57,11 @@ public class ObjectController {
 		String formattedUsedSpace = fileUtils.formatSize(user.getUsedDiskSpace());
 		
 		return new FileUploadingResponse(objectId, percentOfUsedSpace, formattedUsedSpace);
+	}
+	
+	@GetMapping("/file/recent")
+	public List<FileDto> getUsersRecentlyViewedFiles(@AuthenticationPrincipal User user) {
+		return storageService.getRecentlyViewedFiles(user);
 	}
 	
 	@GetMapping("/download/file/{encodedObjectId}") // object Id consists of bucket name and object name
@@ -98,7 +105,7 @@ public class ObjectController {
 	}
 	
 	@GetMapping("/object/all")
-	public ObjectsDto getAllUsersObjects(HttpSession session,
+	public ObjectsDto getUsersObjectsFromCurrentDir(HttpSession session,
 			   							 @AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
 		return storageService.getObjectsFrom(currentDir, user);

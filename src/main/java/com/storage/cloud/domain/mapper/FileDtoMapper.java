@@ -16,11 +16,13 @@ public class FileDtoMapper {
 
 	private final FileUtils fileUtils;
 	
-	public FileDto map(String fullFilename, User user, Map<String, String> meta) {
-		String filename = fileUtils.getFilename(fullFilename);
-		String extension = fileUtils.getFileExtension(fullFilename);
-		String fileId = fileUtils.createObjectId(user, fullFilename);
+	public FileDto map(String objectName, User user, Map<String, String> meta) {
+		String filename = fileUtils.getFilename(objectName);
+		String extension = fileUtils.getFileExtension(objectName);
+		String fileId = fileUtils.createEncodedObjectId(user, objectName);
 		boolean isStarred = Boolean.parseBoolean(meta.get("is-starred"));
+		
+		System.out.println("In mapper:filaname=%s, fileId=%s".formatted(filename, fileId));
 		
 		return new FileDto(fileId, filename, extension, isStarred);
 	}
