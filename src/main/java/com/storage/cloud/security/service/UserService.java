@@ -39,4 +39,11 @@ public class UserService {
 		user.setUsedDiskSpace(previousValue + bytes);
 		userRepo.save(user);
 	}
+	
+	@Transactional
+	public void decreaseUsedDiskSpace(User user, long bytes) {
+		long previousValue = user.getUsedDiskSpace();
+		user.setUsedDiskSpace(previousValue - bytes);
+		userRepo.save(user);
+	}
 }

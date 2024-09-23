@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 
 import com.storage.cloud.domain.model.ObjectId;
 import com.storage.cloud.domain.service.ObjectIdEncodingService;
-import com.storage.cloud.security.model.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -13,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 public class FileUtils {
 
 	private final ObjectIdEncodingService encodingService;
+	
+	public String createEncodedObjectId(String bucket, String objectName) {
+		return encodingService.encode(bucket, objectName);
+	}
 	
 	public String getFullFilename(ObjectId objectId) {
 		String objectName = objectId.name();
@@ -24,10 +27,6 @@ public class FileUtils {
 	public String getFullFilename(String objectName) {
 		int i = objectName.lastIndexOf('/');
 		return objectName.substring(i+1, objectName.length());
-	}
-	
-	public String createEncodedObjectId(User user, String objectName) {
-		return encodingService.encode(user.getId().toString(), objectName);
 	}
 	
 	public String getDir(String objectName) {

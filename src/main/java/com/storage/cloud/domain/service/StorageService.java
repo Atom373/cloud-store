@@ -1,9 +1,9 @@
 package com.storage.cloud.domain.service;
 
 
+import java.io.InputStream;
 import java.util.Map;
 
-import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.storage.cloud.domain.dto.ObjectsDto;
@@ -13,7 +13,7 @@ public interface StorageService {
 
 	ObjectsDto getObjectsFrom(String directory, User user);
 	
-	Resource getFileResource(String bucketName, String objectName);
+	InputStream getFileResource(String bucketName, String objectName);
 	
 	Map<String, String> getObjectMeta(String bucketName, String objectName);
 	
@@ -27,5 +27,5 @@ public interface StorageService {
 	
 	void updateLastViewedDate(String bucket, String objectName);
 	
-	void delete(String filename, User user);
+	void delete(String bucket, String objectName, User user);
 }

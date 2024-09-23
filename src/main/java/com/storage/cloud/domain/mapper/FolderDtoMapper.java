@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import com.storage.cloud.domain.dto.FolderDto;
+import com.storage.cloud.domain.utils.FileUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,20 +13,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FolderDtoMapper {
 
-	public FolderDto map(String relativeName, String directory, Map<String, String> meta) {
-		String foldername = relativeName.split("/")[0];
-		String linkToFolder = "/main?path=" + directory + foldername + "/";
-		boolean isStarred = Boolean.parseBoolean(meta.get("is-starred"));
-		
-		return new FolderDto(foldername, linkToFolder, isStarred);
-	}
+	private final FileUtils fileUtils;
 	
-	public FolderDto map(String fullPath, Map<String, String> meta) {
-		String[] tmp = fullPath.split("/");
+	public FolderDto map(String bucket, String objectName, Map<String, String> meta) {
+		String encodedId = fileUtils.createEncodedObjectId(bucket, objectName);
+		String[] tmp = objectName.split("/");
 		String foldername = tmp[tmp.length - 1];
-		String linkToFolder = "/main?path=" + fullPath;
+		String linkToFolder = "/main?path=" + objectName;
 		boolean isStarred = Boolean.parseBoolean(meta.get("is-starred"));
 		
-		return new FolderDto(foldername, linkToFolder, isStarred);
+		return new FolderDto(encodedId, foldername, linkToFolder, isStarred);
 	}
 }

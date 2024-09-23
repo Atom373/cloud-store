@@ -1,5 +1,6 @@
 package com.storage.cloud.domain.service.impl;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -12,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -85,10 +84,10 @@ public class MinioStorageService implements StorageService {
 				}
 				
 				if (relativeName.contains("/")) { // if contains '/' its a folder
-					FolderDto dto = folderDtoMapper.map(relativeName, directory, meta);
+					FolderDto dto = folderDtoMapper.map(bucket, objectName, meta);
 					folders.add(dto);
 				} else if (!relativeName.isEmpty()) {
-					FileDto dto = fileDtoMapper.map(objectName, user, meta);
+					FileDto dto = fileDtoMapper.map(bucket, objectName, meta);
 					files.add(dto);
 				}
 			} catch (Exception e) {
@@ -128,10 +127,10 @@ public class MinioStorageService implements StorageService {
 				}
 				
 				if (objectName.endsWith("/")) { // if ends with '/' its a folder
-					FolderDto dto = folderDtoMapper.map(objectName, meta);
+					FolderDto dto = folderDtoMapper.map(bucket, objectName, meta);
 					folders.add(dto);
 				} else {
-					FileDto dto = fileDtoMapper.map(objectName, user, meta);
+					FileDto dto = fileDtoMapper.map(bucket, objectName, meta);
 					files.add(dto);
 				}
 			} catch (Exception e) {
@@ -173,7 +172,7 @@ public class MinioStorageService implements StorageService {
 				
 				System.out.println("Recent: viewed = " + lastViewed);
 				if (!objectName.endsWith("/")) { // if doesn't end with '/' its a file
-					FileDto dto = fileDtoMapper.map(objectName, user, meta);
+					FileDto dto = fileDtoMapper.map(bucket, objectName, meta);
 					files.add(new SortableByViewedDto<FileDto>(dto, lastViewed));
 				}
 			} catch (Exception e) {
@@ -214,10 +213,10 @@ public class MinioStorageService implements StorageService {
 				}
 				
 				if (objectName.endsWith("/")) { // if ends with '/' its a folder
-					FolderDto dto = folderDtoMapper.map(objectName, meta);
+					FolderDto dto = folderDtoMapper.map(bucket, objectName, meta);
 					folders.add(dto);
 				} else {
-					FileDto dto = fileDtoMapper.map(objectName, user, meta);
+					FileDto dto = fileDtoMapper.map(bucket, objectName, meta);
 					files.add(dto);
 				}
 			} catch (Exception e) {
@@ -231,7 +230,7 @@ public class MinioStorageService implements StorageService {
 	}
 	
 	@Override
-	public Resource getFileResource(String bucket, String objectName) {
+	public InputStream getFileResource(String bucket, String objectName) {
 		try {
 			InputStream inputStream = client.getObject(
 	                GetObjectArgs.builder()
@@ -239,7 +238,7 @@ public class MinioStorageService implements StorageService {
 	                        .object(objectName)
 	                        .build()
 			);
-			return new InputStreamResource(inputStream);
+			return inputStream;
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage());
 			throw new RuntimeException(e);
@@ -297,12 +296,13 @@ public class MinioStorageService implements StorageService {
 	@Override
 	public String save(MultipartFile file, String directory, User user){
 		String fileObject = directory + file.getOriginalFilename();
+		String bucket = user.getId().toString();
 		Map<String, String> meta = this.createMetadataFor(file, directory);
 		log.info(fileObject);
 		try {
 			client.putObject(
 		        PutObjectArgs.builder()
-		        	.bucket(user.getId().toString())
+		        	.bucket(bucket)
 		        	.object(fileObject)
 		        	.stream(file.getInputStream(), file.getSize(), -1)
 	                .contentType(file.getContentType())
@@ -313,7 +313,7 @@ public class MinioStorageService implements StorageService {
 			log.error(e.getLocalizedMessage());
 		} 
 		userService.increaseUsedDiskSpace(user, file.getSize());
-		return fileUtils.createEncodedObjectId(user, fileObject);
+		return fileUtils.createEncodedObjectId(bucket, fileObject);
 	}
 
 	@Override
@@ -349,9 +349,30 @@ public class MinioStorageService implements StorageService {
 	}
 
 	@Override
-	public void delete(String filename, User user) {
-		// TODO Auto-generated method stub
-		
+	public void delete(String bucket, String objectName, User user) {
+		long objectSize = 0;
+		try {
+			Iterable<Result<Item>> results = client.listObjects(
+				    ListObjectsArgs.builder()
+				    		.bucket(bucket)
+				    		.prefix(objectName)
+				    		.recursive(true)
+				    		.build()
+			);
+			for (Result<Item> result : results) {
+				objectSize += result.get().size();
+				System.out.println("In get obj size: name = " + result.get().objectName() + ", size = " + result.get().size());
+				client.removeObject(
+	                    RemoveObjectArgs.builder()
+	                            .bucket(bucket)  
+	                            .object(result.get().objectName())
+	                            .build()
+	            );
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
+		} 
+		userService.decreaseUsedDiskSpace(user, objectSize);
 	}
 	
 	public void updateLastViewedDate(String bucket, String objectName) {
@@ -481,4 +502,5 @@ public class MinioStorageService implements StorageService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         return currentDate.format(formatter);
 	}
+
 }

@@ -82,10 +82,11 @@ function setUpFileCallbacks(fileItem, fileId) {
 
 function sendDeleteObjectRequest(fileId) {
 	$.ajax({
-        url: '/api//add/' + fileId, 
-        type: 'POST',
-		success: function() {
+        url: '/api/object/' + fileId, 
+        type: 'DELETE',
+		success: function(objectDeletingResponse) {
 			$('#fileWasDeletedMsg').toast('show');
+			changeProgressBar(objectDeletingResponse);
 		},
 		error: function(response) {
 			console.log(response);
@@ -104,6 +105,11 @@ function sendRemoveFromTrashRequest(encodedFileId) {
 			console.log(response);
 		}
     });
+}
+
+function changeProgressBar(objectDeletingResponse) {
+	$('div.progress-bar').css('width', objectDeletingResponse.percentOfUsedSpace);
+	$('div.used-space-label').text(objectDeletingResponse.formattedUsedSpace + " of 5 GB used");
 }
 
 function setUpFileIcon(fileItem, fileExtension) {

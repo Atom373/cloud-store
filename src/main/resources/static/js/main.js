@@ -40,6 +40,7 @@ function getObjectsInfoFromServer() {
 			}
 			
 			for (const file of response.files) {
+				console.log(JSON.stringify(file, null, 2));
 				var fileItem = $('#fileItem').clone();
 				
 				fileItem.removeAttr('id');
@@ -49,7 +50,7 @@ function getObjectsInfoFromServer() {
 				
 				var starredLink = fileItem.find('a.starred-link');
 				
-				if (file.isStarred) {
+				if (file.starred) {
 					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
 					starredLink.data('is-starred', 'true');
 				} else {
@@ -73,7 +74,7 @@ function getObjectsInfoFromServer() {
 
 				var starredLink = folderItem.find('a.starred-link');
 				
-				if (folder.isStarred) {
+				if (folder.starred) {
 					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
 					starredLink.data('is-starred', 'true');
 				} else {
@@ -84,6 +85,8 @@ function getObjectsInfoFromServer() {
 				var link = folderItem.find('a').first();
 				link.text(folder.name);
 				link.attr('href', folder.link);
+				
+				setUpFolderCallbacks(folderItem, folder.encodedId);
 				
 				$('#folders').prepend(folderItem);
 			}
@@ -221,6 +224,10 @@ function sendAddToTrashRequest(encodedFileId) {
     });
 }
 
+function setUpFolderCallbacks(folderItem, folderId) {
+	
+}
+
 function addNewFileItem(event) {
 	const file = event.target.files[0];
 	
@@ -275,7 +282,7 @@ function uploadFileToServer(file, onUploadingSuccess, onUploadingError) {
         error: onUploadingError
     });
 }
-
+ 
 function changeProgressBar(fileUploadingResponse) {
 	$('div.progress-bar').css('width', fileUploadingResponse.percentOfUsedSpace);
 	$('div.used-space-label').text(fileUploadingResponse.formattedUsedSpace + " of 5 GB used");
