@@ -93,8 +93,12 @@
 							</button>
 							<input type="file" class='d-none' id='fileInput'>
 						</li>
-						<li><a class="dropdown-item" href="#"><i class='bx bx-cloud-upload'
-									style="font-size: 20px;"></i> Upload Folder</a></li>
+						<li>
+							<button class="dropdown-item" id="folderUploadBtn">
+								<i class='bx bx-cloud-upload' style="font-size: 20px;"></i> Upload Folder
+							</button>
+							<input type="file" class='d-none' id='folderInput' webkitdirectory multiple />
+						</li>
 					</ul>
 				</div>
 
@@ -152,10 +156,10 @@
 
 					<div class="d-grid mb-1 gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
 						<!-- Invisible folder item. Used only to create new folder items -->
-						<div class="bg-dark d-flex p-2 rounded-4 d-none" id="folderItem">
+						<div class="bg-dark d-flex p-2 rounded-4 align-items-center d-none" id="folderItem">
 							<i class='bx bx-folder mx-1' style="font-size: 28px;"></i>
-							<a href="#" class="flex-grow-1 mx-1 text-reset text-decoration-none fs-5"> Folder 1</a>
-							<div class="dropdown">
+							<a href="#" class="flex-grow-1 mx-1 text-reset text-decoration-none fs-5 open-link"> Folder 1</a>
+							<div class="dropdown d-none">
 								<button class="btn btn-dark d-flex justify-content-center rounded-pill" type="button"
 									data-bs-toggle="dropdown" aria-expanded="false">
 									<i class='bx bx-dots-vertical-rounded'></i>
@@ -190,6 +194,7 @@
 									</li>
 								</ul>
 							</div>
+							<div class="spinner-border ms-1" role="status" style='height: 1.5rem; width: 1.5rem'></div>
 						</div>
 					</div>
 
@@ -260,6 +265,28 @@
 			<div class="toast-body d-flex align-items-center">
 				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
 				<span>File was uploaded</span>
+			</div>
+			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
+	
+	<div id="folderUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+		aria-atomic="true" data-bs-delay="5000">
+		<div class="d-flex">
+			<div class="toast-body d-flex align-items-center">
+				<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i>
+				<span>An error occurred while loading the folder!</span>
+			</div>
+			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+	</div>
+
+	<div id="folderWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+		aria-atomic="true" data-bs-delay="4000">
+		<div class="d-flex">
+			<div class="toast-body d-flex align-items-center">
+				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+				<span>Folder was uploaded</span>
 			</div>
 			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>

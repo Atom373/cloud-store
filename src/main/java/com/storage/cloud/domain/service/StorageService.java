@@ -13,7 +13,7 @@ public interface StorageService {
 
 	ObjectsDto getObjectsFrom(String directory, User user);
 	
-	InputStream getFileResource(String bucketName, String objectName);
+	InputStream getFile(String bucketName, String objectName);
 	
 	Map<String, String> getObjectMeta(String bucketName, String objectName);
 	

@@ -26,8 +26,8 @@ public class MainController {
 	@ModelAttribute
 	public void addCommonAttributes(Model model, @AuthenticationPrincipal User user) {
 		long usedSpace = user.getUsedDiskSpace();
-		System.out.println(user);
-		System.out.println(userDataUtils.convertToPercents(usedSpace));
+		//System.out.println(user);
+		//System.out.println(userDataUtils.convertToPercents(usedSpace));
 		
 		model.addAttribute("percentOfUsedSpace", userDataUtils.convertToPercents(usedSpace));
 		model.addAttribute("usedDiskSpace", fileUtils.formatSize(usedSpace)); 
@@ -36,7 +36,7 @@ public class MainController {
 	@GetMapping("/main")
 	public String mainPage(@RequestParam(defaultValue = "") String path,
 						   Model model, HttpSession session) {
-		System.out.println(path);
+		//System.out.println(path);
 		session.setAttribute("currentDir", path);
 		
 		model.addAttribute("breadcrumbs", breadcrumbUtils.getBreadcrumbsFor(path));

@@ -23,7 +23,6 @@ public class BreadcrumbUtils {
 			current += foldername + "/";
 			result.add(new Breadcrumb(current, foldername));
 		}
-		System.out.println(result);
 		return result;
 	}
 }

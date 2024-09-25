@@ -1,5 +1,6 @@
 package com.storage.cloud.domain.api;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.storage.cloud.domain.dto.FileDto;
 import com.storage.cloud.domain.dto.FileUploadingResponse;
+import com.storage.cloud.domain.dto.FolderUploadingResponse;
 import com.storage.cloud.domain.dto.ObjectDeletingResponse;
 import com.storage.cloud.domain.dto.ObjectsDto;
 import com.storage.cloud.domain.model.ObjectId;
@@ -74,7 +76,7 @@ public class ObjectController {
 		
 		String filename = fileUtils.getFullFilename(objectId);
 		
-		InputStream inputStream = storageService.getFileResource(objectId.bucket(), objectId.name());
+		InputStream inputStream = storageService.getFile(objectId.bucket(), objectId.name());
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachement; filename=\"" + filename + "\"")
@@ -89,9 +91,12 @@ public class ObjectController {
 		String filename = fileUtils.getFullFilename(objectId);
 		String contentType = Files.probeContentType(Paths.get(filename));
 		
+		if (contentType == null) 
+			contentType = "text/plain";
+		
 		storageService.updateLastViewedDate(objectId.bucket(), objectId.name());
 		
-        InputStream inputStream = storageService.getFileResource(objectId.bucket(), objectId.name());
+        InputStream inputStream = storageService.getFile(objectId.bucket(), objectId.name());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
@@ -110,7 +115,7 @@ public class ObjectController {
 	
 	@GetMapping("/object/all")
 	public ObjectsDto getUsersObjectsFromCurrentDir(HttpSession session,
-			   							 @AuthenticationPrincipal User user) {
+			   							 			@AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
 		return storageService.getObjectsFrom(currentDir, user);
 	}
@@ -133,7 +138,7 @@ public class ObjectController {
 	
 	@DeleteMapping("/object/{encodedObjectId}")
 	public ObjectDeletingResponse deleteObject(@PathVariable String encodedObjectId, 
-							 @AuthenticationPrincipal User user) {
+							 				   @AuthenticationPrincipal User user) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
 		storageService.delete(objectId.bucket(), objectId.name(), user);
@@ -177,10 +182,28 @@ public class ObjectController {
 	}
 	
 	@PostMapping("/upload/folder")
-	@ResponseStatus(HttpStatus.CREATED)
-	public String uploadFolder(@RequestParam String foldername, HttpSession session,
-							   @AuthenticationPrincipal User user) {
+	public FolderUploadingResponse uploadFolder(@RequestParam MultipartFile[] files, HttpSession session,
+			   									@AuthenticationPrincipal User user) throws Exception {
 		String currentDir = (String) session.getAttribute("currentDir");
-		return storageService.createFolder(currentDir, foldername, user);
+		String objectId = storageService.saveAll(files, currentDir, user);
+		String linkToFolder = "/main?path=" + currentDir + fileUtils.getBaseDir(files[0]) + "/";
+		
+		String percentOfUsedSpace = userDataUtils.convertToPercents(user.getUsedDiskSpace());
+		String formattedUsedSpace = fileUtils.formatSize(user.getUsedDiskSpace());
+		
+		return new FolderUploadingResponse(objectId, linkToFolder, percentOfUsedSpace, formattedUsedSpace);
+	}
+	
+	@GetMapping("/download/folder/{encodedObjectId}")
+	public ResponseEntity<Resource> downloadFolder(@PathVariable String encodedObjectId) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		
+		String foldername = fileUtils.getFoldername(objectId.name());
+		
+		ByteArrayInputStream inputStream = storageService.getCompressedFolder(objectId.bucket(), objectId.name());
+		return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachement; filename=\"" + foldername + ".zip\"")
+                .body(new InputStreamResource(inputStream));
 	}
 }

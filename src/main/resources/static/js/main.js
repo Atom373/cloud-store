@@ -4,7 +4,9 @@ const fileIcons = {
 	'pdf': {class: 'bxs-file-pdf', color: 'darkred'},
 	'png': {class: 'bxs-file-png', color: 'white'},
 	'jpg': {class: 'bxs-file-jpg', color: 'white'},
-	'html': {class: 'bxs-file-html', color: 'chocolate'}
+	'html': {class: 'bxs-file-html', color: 'chocolate'},
+	'js': {class: 'bxs-file-js', color: 'yellow'},
+	'css': {class: 'bxs-file-css', color: 'lightblue'}
 };
 
 const fileInfoCache = {}
@@ -17,13 +19,19 @@ $(document).ready(function () {
 		$("#createFolderModal").modal('show');
 	});
 	
-	$('#createNewFolderBtn').on('click', addNewFolderItem);
+	$('#createNewFolderBtn').on('click', createNewFolderItem);
 	
 	$('#fileUploadBtn').on('click', function() {
 		$('#fileInput').click();
 	});
 	
+	$('#folderUploadBtn').on('click', function() {
+		$('#folderInput').click();
+	});
+	
 	$('#fileInput').on('change',addNewFileItem);
+	
+	$('#folderInput').on('change', addNewFolderItem);
 });
 
 function getObjectsInfoFromServer() {
@@ -71,6 +79,8 @@ function getObjectsInfoFromServer() {
 					
 				folderItem.removeAttr('id');
 				folderItem.removeClass("d-none");
+				folderItem.find('div.spinner-border').remove();
+				folderItem.find('div.dropdown').removeClass("d-none");
 
 				var starredLink = folderItem.find('a.starred-link');
 				
@@ -183,9 +193,9 @@ function sendRenameFileRequest(encodedFileId, newFilename, fileItem) {
     });
 }
 
-function sendAddToStarredRequest(encodedFileId, starredLink) {
+function sendAddToStarredRequest(encodedId, starredLink) {
 	$.ajax({
-        url: '/api/starred/add/' + encodedFileId, 
+        url: '/api/starred/add/' + encodedId, 
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
@@ -197,9 +207,9 @@ function sendAddToStarredRequest(encodedFileId, starredLink) {
     });
 }
 
-function sendRemoveFromStarredRequest(encodedFileId, starredLink) {
+function sendRemoveFromStarredRequest(encodedId, starredLink) {
 	$.ajax({
-        url: '/api/starred/remove/' + encodedFileId, 
+        url: '/api/starred/remove/' + encodedId, 
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
@@ -211,9 +221,9 @@ function sendRemoveFromStarredRequest(encodedFileId, starredLink) {
     });
 }
 
-function sendAddToTrashRequest(encodedFileId) {
+function sendAddToTrashRequest(encodedId) {
 	$.ajax({
-        url: '/api/trash/add/' + encodedFileId, 
+        url: '/api/trash/add/' + encodedId, 
         type: 'POST',
 		success: function() {
 			$('#movedToTrashMsg').toast('show');
@@ -224,8 +234,26 @@ function sendAddToTrashRequest(encodedFileId) {
     });
 }
 
-function setUpFolderCallbacks(folderItem, folderId) {
+function setUpFolderCallbacks(folderItem, folderId, linkToFolder) {
+	const openLink = folderItem.find('a.open-link');
+	openLink.attr('href', linkToFolder);
 	
+	const downloadLink = '/api/download/folder/' + folderId;
+	
+	folderItem.find('a.download-link').attr('href', downloadLink);
+	
+	folderItem.find('a.share-link').off('click').on('click',function() {
+		navigator.clipboard.writeText(window.location.origin + downloadLink);
+		$('#linkWasCopiedMsg').toast('show');
+	});
+	
+	folderItem.find('a.trash-link').off('click').on('click',function() {
+		folderItem.remove();
+		if ($('#folders').children().length - 1 === 0) {
+			$('#noFoldersLabel').removeClass("d-none");
+		}
+		sendAddToTrashRequest(folderId);
+	});
 }
 
 function addNewFileItem(event) {
@@ -247,7 +275,7 @@ function addNewFileItem(event) {
 	
 	function onUploadingSuccess(fileUploadingResponse) {
 		console.log("After uploading: " + JSON.stringify(fileUploadingResponse, null, 2));
-		setUpFileCallbacks(fileItem, fileUploadingResponse.encodedFileId);
+		setUpFileCallbacks(fileItem, fileUploadingResponse.encodedId);
 		$("#fileWasUploadedMsg").toast('show');
 		spiner.remove();
 		dropdown.removeClass("d-none");
@@ -283,9 +311,9 @@ function uploadFileToServer(file, onUploadingSuccess, onUploadingError) {
     });
 }
  
-function changeProgressBar(fileUploadingResponse) {
-	$('div.progress-bar').css('width', fileUploadingResponse.percentOfUsedSpace);
-	$('div.used-space-label').text(fileUploadingResponse.formattedUsedSpace + " of 5 GB used");
+function changeProgressBar(objectUploadingResponse) {
+	$('div.progress-bar').css('width', objectUploadingResponse.percentOfUsedSpace);
+	$('div.used-space-label').text(objectUploadingResponse.formattedUsedSpace + " of 5 GB used");
 }
 
 function setUpFileIcon(fileItem, fileExtension) {
@@ -303,7 +331,7 @@ function setUpFileIcon(fileItem, fileExtension) {
 	icon.css('color', iconColor);
 }
 
-function addNewFolderItem() {
+function createNewFolderItem() {
 	var foldername = $('#foldernameInput').val().trim();
 	if (foldername.length === 0)
 		return;
@@ -320,6 +348,9 @@ function addNewFolderItem() {
 	
 	$('#noFoldersLabel').addClass("d-none");
 	
+	folderItem.find('div.spinner-border').remove();
+	folderItem.find('div.dropdown').removeClass("d-none");
+	
 	$('#folders').prepend(folderItem);
 	
 	$("#createFolderModal").modal('hide');
@@ -332,7 +363,62 @@ function sendCreateFolderRequest(foldername, folderLink) {
 		data: { foldername: foldername },
 		success: function(pathToCreatedFolder) {
 			folderLink.attr('href', '/main?path=' + pathToCreatedFolder);
+			
             console.log('Папка создана');
         }
     });
+}
+
+function addNewFolderItem() {
+	const folderInput = $('#folderInput')[0];
+    const formData = new FormData();
+
+	if (folderInput.files.length === 0)
+		return;
+	
+	const file = folderInput.files[0];
+	
+	var folderItem = $('#folderItem').clone();
+	folderItem.removeAttr('id');
+	
+	folderItem.removeClass("d-none");
+	 
+	folderItem.find('a.open-link').text(file.webkitRelativePath.split("/")[0]);
+	
+	var dropdown = folderItem.find('div.dropdown');
+	var spiner = folderItem.find('div.spinner-border');
+	
+	function onUploadingSuccess(folderUploadingResponse) {
+		console.log("After uploading: " + JSON.stringify(folderUploadingResponse, null, 2));
+		setUpFolderCallbacks(folderItem, folderUploadingResponse.encodedId, folderUploadingResponse.linkToFolder);
+		$("#folderWasUploadedMsg").toast('show');
+		spiner.remove();
+		dropdown.removeClass("d-none");
+		changeProgressBar(folderUploadingResponse);
+		console.log('Файл успешно отправлен');
+	}
+	
+	function onUploadingError() {
+		$("#folderUploadingErrorMsg").toast('show');
+		folderItem.remove();
+		console.log('Ошибка при отправке файла');
+	}
+	
+    for (let file of folderInput.files) {
+		console.log(file.name);
+        formData.append('files', file, file.webkitRelativePath);
+    }
+	
+	$.ajax({
+        url: '/api/upload/folder', 
+        type: 'POST',
+        data: formData,
+		contentType: false,
+		processData: false,
+		success: onUploadingSuccess,
+		error: onUploadingError
+    });
+	$('#noFoldersLabel').addClass('d-none');
+	
+	$('#folders').prepend(folderItem);
 }

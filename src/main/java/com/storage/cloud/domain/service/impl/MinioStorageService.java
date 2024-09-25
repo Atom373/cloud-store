@@ -2,6 +2,7 @@ package com.storage.cloud.domain.service.impl;
 
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -83,7 +86,7 @@ public class MinioStorageService implements StorageService {
 					continue;
 				}
 				
-				if (relativeName.contains("/")) { // if contains '/' its a folder
+				if (relativeName.contains("/") || relativeName.startsWith(".")) {
 					FolderDto dto = folderDtoMapper.map(bucket, objectName, meta);
 					folders.add(dto);
 				} else if (!relativeName.isEmpty()) {
@@ -91,7 +94,7 @@ public class MinioStorageService implements StorageService {
 					files.add(dto);
 				}
 			} catch (Exception e) {
-				log.error(e.getLocalizedMessage());
+				log.error("In get all: " + e.getLocalizedMessage());
 			} 
 		}
 		files.sort(Comparator.comparing(FileDto::getName));
@@ -134,7 +137,7 @@ public class MinioStorageService implements StorageService {
 					files.add(dto);
 				}
 			} catch (Exception e) {
-				log.error(e.getLocalizedMessage());
+				log.error("Get starred: " + e.getLocalizedMessage());
 				throw new RuntimeException(e);
 			} 
 		}
@@ -230,7 +233,7 @@ public class MinioStorageService implements StorageService {
 	}
 	
 	@Override
-	public InputStream getFileResource(String bucket, String objectName) {
+	public InputStream getFile(String bucket, String objectName) {
 		try {
 			InputStream inputStream = client.getObject(
 	                GetObjectArgs.builder()
@@ -244,7 +247,40 @@ public class MinioStorageService implements StorageService {
 			throw new RuntimeException(e);
 		} 
 	}
-	
+
+	public ByteArrayInputStream getCompressedFolder(String bucket, String objectName) {
+		try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
+
+            Iterable<Result<Item>> results = client.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(bucket)
+                            .prefix(objectName)
+                            .recursive(true)
+                            .build());
+
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                if (!item.isDir()) {
+                	InputStream inputStream = this.getFile(bucket, item.objectName());
+
+                    ZipEntry zipEntry = new ZipEntry(item.objectName().substring(objectName.length())); 
+                    zipOutputStream.putNextEntry(zipEntry);
+
+                    inputStream.transferTo(zipOutputStream);
+                    inputStream.close();
+                    zipOutputStream.closeEntry();
+                }
+            }
+            zipOutputStream.close();
+
+            return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+	}
+
 	public Map<String, String> getObjectMeta(String bucket, String objectName) {
 		try {
 			StatObjectResponse stat = client.statObject(
@@ -275,8 +311,11 @@ public class MinioStorageService implements StorageService {
 	
 	@Override
 	public String createFolder(String directory, String foldername, User user) {
-        String folderObject = directory + foldername + "/";
-
+        String folderObject = directory + foldername;
+        
+        if (!folderObject.endsWith("/"))
+        	folderObject += "/";
+        
         Map<String, String> meta = this.createMetadataFor(foldername, directory);
         try {
 			client.putObject(
@@ -288,7 +327,7 @@ public class MinioStorageService implements StorageService {
 			        .build()
 			);
 		} catch (Exception e) {
-			log.error(e.getLocalizedMessage());
+			log.error("In create folder: " + e.getLocalizedMessage());
 		} 
         return folderObject;
 	}
@@ -298,7 +337,6 @@ public class MinioStorageService implements StorageService {
 		String fileObject = directory + file.getOriginalFilename();
 		String bucket = user.getId().toString();
 		Map<String, String> meta = this.createMetadataFor(file, directory);
-		log.info(fileObject);
 		try {
 			client.putObject(
 		        PutObjectArgs.builder()
@@ -310,10 +348,32 @@ public class MinioStorageService implements StorageService {
 	                .build()
 			);
 		} catch (Exception e) {
-			log.error(e.getLocalizedMessage());
+			log.error("In save : " + e.getLocalizedMessage());
 		} 
 		userService.increaseUsedDiskSpace(user, file.getSize());
 		return fileUtils.createEncodedObjectId(bucket, fileObject);
+	}
+	
+	public String saveAll(MultipartFile[] files, String directory, User user) {
+		Set<String> foldersToCreate = this.collectAllFolders(files);
+		List<String> paths = new ArrayList<>();
+		
+		String bucket = user.getId().toString();
+		String folderObject = directory + fileUtils.getBaseDir(files[0]);
+		
+		long overallSize = 0;
+		
+		for (String foldername : foldersToCreate) {
+			this.createFolder(directory, foldername, user);
+		}
+		
+		for (MultipartFile file : files) {
+			paths.add(file.getOriginalFilename());
+			overallSize += file.getSize();
+			this.save(file, directory, user);
+        }
+		userService.increaseUsedDiskSpace(user, overallSize);
+		return fileUtils.createEncodedObjectId(bucket, folderObject);
 	}
 
 	@Override
@@ -468,8 +528,12 @@ public class MinioStorageService implements StorageService {
 		Map<String, String> meta = new HashMap<>();
 		
 		String path = directory.isEmpty() ? "My Drive" : directory;
+		String fullFilename = file.getOriginalFilename();
 		
-		String extension = fileUtils.getFileExtension(file.getOriginalFilename());
+		if (fullFilename.contains("/"))
+			path += fileUtils.getDir(fullFilename);
+		
+		String extension = fileUtils.getFileExtension(fullFilename);
 		
 		meta.put("x-amz-meta-path", path);
 		meta.put("x-amz-meta-type", extension.toUpperCase());
@@ -503,4 +567,19 @@ public class MinioStorageService implements StorageService {
         return currentDate.format(formatter);
 	}
 
+	private Set<String> collectAllFolders(MultipartFile[] files) {
+		Set<String> directories = new HashSet<>();
+		
+		for (MultipartFile file : files) {
+			int i=0, j=0;
+			String path = file.getOriginalFilename();
+			while ( (i = path.indexOf('/', j)) != -1) {
+				String directory = path.substring(0, i+1);
+				j = i + 1;
+				directories.add(directory);
+			}
+		}
+		System.out.println("Dirs are : " + directories);
+		return directories;
+	}
 }

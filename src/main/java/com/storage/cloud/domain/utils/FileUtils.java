@@ -1,6 +1,7 @@
 package com.storage.cloud.domain.utils;
 
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.storage.cloud.domain.model.ObjectId;
 import com.storage.cloud.domain.service.ObjectIdEncodingService;
@@ -33,19 +34,34 @@ public class FileUtils {
 		if (!objectName.contains("/"))
 			return "";
 		int lastBackslashIndex = objectName.lastIndexOf("/");
-		return objectName.substring(0, lastBackslashIndex) + '/';
+		return objectName.substring(0, lastBackslashIndex + 1);
+	}
+	
+	public String getBaseDir(MultipartFile file) {
+		return file.getOriginalFilename().split("/")[0];
 	}
 	
 	public String getFileExtension(String objectName) {
+		if (!objectName.contains("."))
+			return "";
 		String[] tmp = objectName.split("\\.");
 		return tmp[tmp.length - 1];
 	}
 	
 	public String getFilename(String objectName) {
 		System.out.println("in get filename = "+objectName);
-		if (objectName.contains("/"))
-			return objectName.substring(objectName.lastIndexOf('/')+1, objectName.lastIndexOf('.'));
-		return objectName.substring(0, objectName.lastIndexOf('.'));
+		int lastDotIndex = objectName.lastIndexOf('.');
+		int lastBackslashIndex = objectName.lastIndexOf('/');
+		if (lastDotIndex != -1 && lastDotIndex > lastBackslashIndex)
+			return objectName.substring(lastBackslashIndex+1, lastDotIndex);
+		return objectName.substring(lastBackslashIndex+1, objectName.length());
+	}
+	
+	public String getFoldername(String objectName) {
+		if (!objectName.contains("/"))
+			return objectName;
+		String[] tmp = objectName.split("/");
+		return tmp[tmp.length - 1];
 	}
 	
 	public String formatSize(long size) {
