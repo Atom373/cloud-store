@@ -47,9 +47,10 @@ function getTrashedObjectsInfoFromServer() {
 				folderItem.removeAttr('id');
 				folderItem.removeClass("d-none");
 
+				setUpFolderCallbacks(folderItem, folder.encodedId);
+				
 				var foldername = folderItem.find('span');
 				foldername.text(folder.name);
-				foldername.attr('href', folder.link);
 				
 				$('#folders').prepend(folderItem);
 			}
@@ -80,9 +81,9 @@ function setUpFileCallbacks(fileItem, fileId) {
 	});
 }
 
-function sendDeleteObjectRequest(fileId) {
+function sendDeleteObjectRequest(objectId) {
 	$.ajax({
-        url: '/api/object/' + fileId, 
+        url: '/api/object/' + objectId, 
         type: 'DELETE',
 		success: function(objectDeletingResponse) {
 			$('#fileWasDeletedMsg').toast('show');
@@ -125,4 +126,22 @@ function setUpFileIcon(fileItem, fileExtension) {
 	var icon = fileItem.find('i').first();
 	icon.addClass(iconClass);
 	icon.css('color', iconColor);
+}
+
+function setUpFolderCallbacks(folderItem, folderId) {
+	folderItem.find('a.restore-link').on('click', function() {
+		folderItem.remove();
+		if ($('#folders').children().length - 1 === 0) {
+			$('#noFoldersLabel').removeClass("d-none");
+		}
+		sendRemoveFromTrashRequest(folderId);
+	});
+	
+	folderItem.find('a.delete-link').on('click', function() {
+		folderItem.remove();
+		if ($('#folders').children().length - 1 === 0) {
+			$('#noFoldersLabel').removeClass("d-none");
+		}
+		sendDeleteObjectRequest(folderId);
+	});
 }

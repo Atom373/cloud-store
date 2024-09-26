@@ -124,9 +124,12 @@
 									<i class='bx bx-dots-vertical-rounded'></i>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end" style="width: auto; min-width: unset;">
-									<li><a class="dropdown-item" href="#"><i class='bx bx-reset'
+									<li><a class="dropdown-item restore-link" href="#"><i class='bx bx-reset'
 												style="font-size: 20px;"></i> Restore</a></li>
-									<li><a class="dropdown-item" href="#"><i class='bx bx-x-circle'
+									<li>
+										<hr class="dropdown-divider">
+									</li>
+									<li><a class="dropdown-item delete-link" href="#"><i class='bx bx-x-circle'
 												style="font-size: 20px;"></i> Delete</a></li>
 								</ul>
 							</div>
@@ -175,19 +178,19 @@
 		<div class="d-flex">
 			<div class="toast-body d-flex align-items-center">
 				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>File was deleted</span>
+				<span>Deleted</span>
 			</div>
 			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>
 	</div>
-
+	
 
 	<div id="fileWasRestoredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
 		aria-atomic="true" data-bs-delay="4000">
 		<div class="d-flex">
 			<div class="toast-body d-flex align-items-center">
 				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>File was restored</span>
+				<span>Restored</span>
 			</div>
 			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>

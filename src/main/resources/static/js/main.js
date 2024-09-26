@@ -439,8 +439,8 @@ function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
 			cache: false,
 	        success: function(meta) {
 				console.log(JSON.stringify(meta, null, 2));
-				const filename = openLink.text();
-				$('#foldernameInfo').text(filename);
+				const foldername = openLink.text();
+				$('#foldernameInfo').text(foldername);
 				$('#folderPathInfo').text(meta.path);
 				$('#folderCreatedInfo').text(meta.created);
 				$('#folderViewedInfo').text(meta.viewed);

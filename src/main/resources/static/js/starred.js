@@ -31,7 +31,7 @@ function getStarredObjectsInfoFromServer() {
 				fileItem.removeAttr('id');
 				fileItem.removeClass("d-none");
 				
-				setUpFileCallbacks(fileItem, file.id);
+				setUpFileCallbacks(fileItem, file.encodedId);
 				
 				fileItem.find('a.open-link').text(file.name);
 				
@@ -44,12 +44,12 @@ function getStarredObjectsInfoFromServer() {
 					
 				folderItem.removeAttr('id');
 				folderItem.removeClass("d-none");
-
-				setUpFolderCallbacks(folderItem, folder);
 				
 				var link = folderItem.find('a').first();
 				link.text(folder.name);
 				link.attr('href', folder.link);
+				
+				setUpFolderCallbacks(folderItem, folder.encodedId);
 				
 				$('#folders').prepend(folderItem);
 			}
@@ -127,9 +127,9 @@ function setUpFileCallbacks(fileItem, fileId) {
 	});
 }
 
-function sendRemoveFromStarredRequest(fileId, starredLink) {
+function sendRemoveFromStarredRequest(objectId, starredLink) {
 	$.ajax({
-        url: '/api/starred/remove/' + fileId, 
+        url: '/api/starred/remove/' + objectId, 
         type: 'POST',
 		error: function(response) {
 			console.log(response);
@@ -173,6 +173,25 @@ function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
 	
 	folderItem.find('a.download-link').attr('href', downloadLink);
 	
+	folderItem.find('a.rename-link').off('click').on('click',function() {
+		$('#renameFolderModal').modal('show');
+		
+		$(this).attr('href', '#');
+		
+		$('#renameFolderBtn').click(function() {
+			var newFoldername = $('#newFoldernameInput').val().trim();
+			
+			if (newFoldername.length === 0 || newFoldername.includes('/') || newFoldername.includes('.'))
+				return;
+			
+			openLink.text(newFoldername);
+			
+			sendRenameFolderRequest(encodedFolderId, newFoldername, folderItem);
+			
+			$('#renameFolderModal').modal('hide');
+		});
+	});
+	
 	folderItem.find('a.share-link').off('click').on('click',function() {
 		navigator.clipboard.writeText(window.location.origin + downloadLink);
 		$('#linkWasCopiedMsg').toast('show');
@@ -185,8 +204,8 @@ function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
 			cache: false,
 	        success: function(meta) {
 				console.log(JSON.stringify(meta, null, 2));
-				const filename = openLink.text();
-				$('#foldernameInfo').text(filename);
+				const foldername = openLink.text();
+				$('#foldernameInfo').text(foldername);
 				$('#folderPathInfo').text(meta.path);
 				$('#folderCreatedInfo').text(meta.created);
 				$('#folderViewedInfo').text(meta.viewed);
@@ -196,13 +215,12 @@ function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
 	});
 	
 	folderItem.find('a.starred-link').off('click').on('click',function() {
-		if ($(this).data('is-starred') === 'false') {
-			sendAddToStarredRequest(encodedFolderId, $(this));
-			$('#addedToStarredMsg').toast('show');
-		} else {
-			sendRemoveFromStarredRequest(encodedFolderId, $(this));
-			$('#removedFromStarredMsg').toast('show');
-		} 	
+		folderItem.remove();
+		if ($('#folders').children().length - 1 === 0) {
+			$('#noFoldersLabel').removeClass("d-none");
+		}
+		sendRemoveFromStarredRequest(encodedFolderId, $(this));
+		$('#removedFromStarredMsg').toast('show');	
 	});
 		
 	folderItem.find('a.trash-link').off('click').on('click',function() {
