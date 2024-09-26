@@ -27,10 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.storage.cloud.domain.dto.FileDto;
-import com.storage.cloud.domain.dto.FileUploadingResponse;
-import com.storage.cloud.domain.dto.FolderUploadingResponse;
-import com.storage.cloud.domain.dto.ObjectDeletingResponse;
 import com.storage.cloud.domain.dto.ObjectsDto;
+import com.storage.cloud.domain.dto.response.FileUploadingResponse;
+import com.storage.cloud.domain.dto.response.FolderRenamingResponse;
+import com.storage.cloud.domain.dto.response.FolderUploadingResponse;
+import com.storage.cloud.domain.dto.response.ObjectDeletingResponse;
 import com.storage.cloud.domain.model.ObjectId;
 import com.storage.cloud.domain.service.ObjectIdEncodingService;
 import com.storage.cloud.domain.service.impl.MinioStorageService;
@@ -108,7 +109,7 @@ public class ObjectController {
 							 @RequestParam String newFilename) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
-		String newObjectName = storageService.rename(objectId.bucket(), objectId.name(), newFilename);
+		String newObjectName = storageService.renameFile(objectId.bucket(), objectId.name(), newFilename);
 		
 		return encodingService.encode(objectId.bucket(), newObjectName);
 	}
@@ -117,6 +118,10 @@ public class ObjectController {
 	public ObjectsDto getUsersObjectsFromCurrentDir(HttpSession session,
 			   							 			@AuthenticationPrincipal User user) {
 		String currentDir = (String) session.getAttribute("currentDir");
+		
+		if (!currentDir.isEmpty())
+			storageService.updateLastViewedDate(user.getId().toString(), currentDir);
+		
 		return storageService.getObjectsFrom(currentDir, user);
 	}
 	
@@ -186,7 +191,7 @@ public class ObjectController {
 			   									@AuthenticationPrincipal User user) throws Exception {
 		String currentDir = (String) session.getAttribute("currentDir");
 		String objectId = storageService.saveAll(files, currentDir, user);
-		String linkToFolder = "/main?path=" + currentDir + fileUtils.getBaseDir(files[0]) + "/";
+		String linkToFolder = "/main?path=" + currentDir + fileUtils.getBaseDir(files[0]);
 		
 		String percentOfUsedSpace = userDataUtils.convertToPercents(user.getUsedDiskSpace());
 		String formattedUsedSpace = fileUtils.formatSize(user.getUsedDiskSpace());
@@ -205,5 +210,17 @@ public class ObjectController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachement; filename=\"" + foldername + ".zip\"")
                 .body(new InputStreamResource(inputStream));
+	}
+	
+	@PatchMapping("/rename/folder/{encodedObjectId}")
+	public FolderRenamingResponse renameFolder(@PathVariable String encodedObjectId,
+							   				   @RequestParam String newFoldername) {
+		ObjectId objectId = encodingService.decode(encodedObjectId);
+		
+		String newDirectory = storageService.renameFolder(objectId.bucket(), objectId.name(), newFoldername);
+		String linkToFolder = "/main?path=" + newDirectory;
+		String enocdedId = fileUtils.createEncodedObjectId(objectId.bucket(), newDirectory);
+		System.out.println("New link is : " + linkToFolder);
+		return new FolderRenamingResponse(enocdedId, linkToFolder);
 	}
 }

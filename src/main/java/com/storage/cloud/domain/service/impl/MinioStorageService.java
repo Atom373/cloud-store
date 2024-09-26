@@ -377,7 +377,7 @@ public class MinioStorageService implements StorageService {
 	}
 
 	@Override
-	public String rename(String bucket, String objectName, String newFilename) {
+	public String renameFile(String bucket, String objectName, String newFilename) {
 		String dir = fileUtils.getDir(objectName);
 		String extension = fileUtils.getFileExtension(objectName);
 		
@@ -408,6 +408,53 @@ public class MinioStorageService implements StorageService {
 		return newObjectName;
 	}
 
+	public String renameFolder(String bucket, String directory, String newFoldername) {
+
+		String newDirectory = fileUtils.getPathToLastFolder(directory) + newFoldername + "/";
+		System.out.println("Current dir is : " + directory);
+		System.out.println("New dir is : " + newDirectory);
+		
+		Iterable<Result<Item>> results = client.listObjects(
+			    ListObjectsArgs.builder()
+			    		.bucket(bucket)
+			    		.prefix(directory)
+			    		.recursive(true)
+			    		.build()
+		);
+		
+		for (Result<Item> result : results) {
+			try {
+				String objectName = result.get().objectName();
+				String newObjectName = newDirectory + objectName.substring(directory.length(), objectName.length());
+				
+				System.out.println("Old obj name = " + objectName);
+				System.out.println("New obj name = " + newObjectName);
+				
+				client.copyObject(
+		            CopyObjectArgs.builder()
+		                .bucket(bucket)
+		                .object(newObjectName)
+		                .source(CopySource.builder()
+		                			.bucket(bucket)
+		                			.object(objectName)
+		                			.build()
+		                )
+		                .build()
+		        );
+			
+		        client.removeObject(
+		            RemoveObjectArgs.builder()
+		                .bucket(bucket)
+		                .object(objectName)
+		                .build()
+		        );
+			} catch (Exception e) {
+				log.error(e.getLocalizedMessage());
+			} 
+		}
+		return newDirectory;
+	}
+	
 	@Override
 	public void delete(String bucket, String objectName, User user) {
 		long objectSize = 0;

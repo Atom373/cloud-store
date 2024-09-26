@@ -30,8 +30,6 @@ function getStarredObjectsInfoFromServer() {
 				
 				fileItem.removeAttr('id');
 				fileItem.removeClass("d-none");
-				fileItem.find('div.spinner-border').remove();
-				fileItem.find('div.dropdown').removeClass("d-none");
 				
 				setUpFileCallbacks(fileItem, file.id);
 				
@@ -47,6 +45,8 @@ function getStarredObjectsInfoFromServer() {
 				folderItem.removeAttr('id');
 				folderItem.removeClass("d-none");
 
+				setUpFolderCallbacks(folderItem, folder);
+				
 				var link = folderItem.find('a').first();
 				link.text(folder.name);
 				link.attr('href', folder.link);
@@ -163,4 +163,53 @@ function setUpFileIcon(fileItem, fileExtension) {
 	var icon = fileItem.find('i').first();
 	icon.addClass(iconClass);
 	icon.css('color', iconColor);
+}
+
+function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
+	const openLink = folderItem.find('a.open-link');
+	openLink.attr('href', linkToFolder);
+	
+	const downloadLink = '/api/download/folder/' + encodedFolderId;
+	
+	folderItem.find('a.download-link').attr('href', downloadLink);
+	
+	folderItem.find('a.share-link').off('click').on('click',function() {
+		navigator.clipboard.writeText(window.location.origin + downloadLink);
+		$('#linkWasCopiedMsg').toast('show');
+	});
+	
+	folderItem.find('a.info-link').off('click').on('click',function() {
+		$.ajax({
+	        url: '/api/object/meta/' + encodedFolderId, 
+	        type: 'GET',
+			cache: false,
+	        success: function(meta) {
+				console.log(JSON.stringify(meta, null, 2));
+				const filename = openLink.text();
+				$('#foldernameInfo').text(filename);
+				$('#folderPathInfo').text(meta.path);
+				$('#folderCreatedInfo').text(meta.created);
+				$('#folderViewedInfo').text(meta.viewed);
+			}
+		});
+		$('#folderInfoModal').modal('show');
+	});
+	
+	folderItem.find('a.starred-link').off('click').on('click',function() {
+		if ($(this).data('is-starred') === 'false') {
+			sendAddToStarredRequest(encodedFolderId, $(this));
+			$('#addedToStarredMsg').toast('show');
+		} else {
+			sendRemoveFromStarredRequest(encodedFolderId, $(this));
+			$('#removedFromStarredMsg').toast('show');
+		} 	
+	});
+		
+	folderItem.find('a.trash-link').off('click').on('click',function() {
+		folderItem.remove();
+		if ($('#folders').children().length - 1 === 0) {
+			$('#noFoldersLabel').removeClass("d-none");
+		}
+		sendAddToTrashRequest(encodedFolderId);
+	});
 }

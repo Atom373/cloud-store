@@ -1,11 +1,10 @@
-package com.storage.cloud.domain.dto;
+package com.storage.cloud.domain.dto.response;
 
 import lombok.Data;
 
 @Data
-public class FileUploadingResponse {
-
-	private final String encodedId;
+public class ObjectDeletingResponse {
+	
 	private final String percentOfUsedSpace;
 	private final String formattedUsedSpace;
 }

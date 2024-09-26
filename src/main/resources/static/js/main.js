@@ -166,8 +166,7 @@ function setUpFileCallbacks(fileItem, encodedFileId) {
 		} else {
 			sendRemoveFromStarredRequest(encodedFileId, $(this));
 			$('#removedFromStarredMsg').toast('show');
-		} 
-			
+		} 	
 	});
 	
 	fileItem.find('a.trash-link').off('click').on('click',function() {
@@ -232,28 +231,6 @@ function sendAddToTrashRequest(encodedId) {
 			console.log(response);
 		}
     });
-}
-
-function setUpFolderCallbacks(folderItem, folderId, linkToFolder) {
-	const openLink = folderItem.find('a.open-link');
-	openLink.attr('href', linkToFolder);
-	
-	const downloadLink = '/api/download/folder/' + folderId;
-	
-	folderItem.find('a.download-link').attr('href', downloadLink);
-	
-	folderItem.find('a.share-link').off('click').on('click',function() {
-		navigator.clipboard.writeText(window.location.origin + downloadLink);
-		$('#linkWasCopiedMsg').toast('show');
-	});
-	
-	folderItem.find('a.trash-link').off('click').on('click',function() {
-		folderItem.remove();
-		if ($('#folders').children().length - 1 === 0) {
-			$('#noFoldersLabel').removeClass("d-none");
-		}
-		sendAddToTrashRequest(folderId);
-	});
 }
 
 function addNewFileItem(event) {
@@ -421,4 +398,86 @@ function addNewFolderItem() {
 	$('#noFoldersLabel').addClass('d-none');
 	
 	$('#folders').prepend(folderItem);
+}
+
+function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
+	const openLink = folderItem.find('a.open-link');
+	openLink.attr('href', linkToFolder);
+	
+	const downloadLink = '/api/download/folder/' + encodedFolderId;
+	
+	folderItem.find('a.download-link').attr('href', downloadLink);
+	
+	folderItem.find('a.rename-link').off('click').on('click',function() {
+		$('#renameFolderModal').modal('show');
+		
+		$(this).attr('href', '#');
+		
+		$('#renameFolderBtn').click(function() {
+			var newFoldername = $('#newFoldernameInput').val().trim();
+			
+			if (newFoldername.length === 0 || newFoldername.includes('/') || newFoldername.includes('.'))
+				return;
+			
+			openLink.text(newFoldername);
+			
+			sendRenameFolderRequest(encodedFolderId, newFoldername, folderItem);
+			
+			$('#renameFolderModal').modal('hide');
+		});
+	});
+	
+	folderItem.find('a.share-link').off('click').on('click',function() {
+		navigator.clipboard.writeText(window.location.origin + downloadLink);
+		$('#linkWasCopiedMsg').toast('show');
+	});
+	
+	folderItem.find('a.info-link').off('click').on('click',function() {
+		$.ajax({
+	        url: '/api/object/meta/' + encodedFolderId, 
+	        type: 'GET',
+			cache: false,
+	        success: function(meta) {
+				console.log(JSON.stringify(meta, null, 2));
+				const filename = openLink.text();
+				$('#foldernameInfo').text(filename);
+				$('#folderPathInfo').text(meta.path);
+				$('#folderCreatedInfo').text(meta.created);
+				$('#folderViewedInfo').text(meta.viewed);
+			}
+		});
+		$('#folderInfoModal').modal('show');
+	});
+	
+	folderItem.find('a.starred-link').off('click').on('click',function() {
+		if ($(this).data('is-starred') === 'false') {
+			sendAddToStarredRequest(encodedFolderId, $(this));
+			$('#addedToStarredMsg').toast('show');
+		} else {
+			sendRemoveFromStarredRequest(encodedFolderId, $(this));
+			$('#removedFromStarredMsg').toast('show');
+		} 	
+	});
+		
+	folderItem.find('a.trash-link').off('click').on('click',function() {
+		folderItem.remove();
+		if ($('#folders').children().length - 1 === 0) {
+			$('#noFoldersLabel').removeClass("d-none");
+		}
+		sendAddToTrashRequest(encodedFolderId);
+	});
+}
+
+function sendRenameFolderRequest(encodedFolderId, newFoldername, folderItem) {
+	$.ajax({
+        url: '/api/rename/folder/' + encodedFolderId, 
+        type: 'PATCH',
+		data: { newFoldername: newFoldername },
+		success: function(folderRenamingResponse) {
+			setUpFolderCallbacks(folderItem, folderRenamingResponse.encodedId, folderRenamingResponse.linkToFolder);
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
 }

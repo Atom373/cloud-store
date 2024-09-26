@@ -38,7 +38,15 @@ public class FileUtils {
 	}
 	
 	public String getBaseDir(MultipartFile file) {
-		return file.getOriginalFilename().split("/")[0];
+		return file.getOriginalFilename().split("/")[0] + "/";
+	}
+	
+	public String getPathToLastFolder(String path) {
+		int length = path.length();
+		int penultimateBackslashIndex = path.lastIndexOf("/", length-2); // excluding the last backslash
+		if (penultimateBackslashIndex == -1)
+			return "";
+		return path.substring(0, penultimateBackslashIndex+1); // including
 	}
 	
 	public String getFileExtension(String objectName) {

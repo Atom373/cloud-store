@@ -247,95 +247,96 @@
 	</div>
 
 	<!-- Toasts -->
-
-	<div id="fileUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="5000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i>
-				<span>An error occurred while loading the file!</span>
+	<div class="toast-container position-static">
+		<div id="fileUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="5000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i>
+					<span>An error occurred while loading the file!</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 		</div>
-	</div>
-
-	<div id="fileWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>File was uploaded</span>
+	
+		<div id="fileWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="4000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+					<span>File was uploaded</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
 			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+		</div>
+		
+		<div id="folderUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="5000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i>
+					<span>An error occurred while loading the folder!</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+			</div>
+		</div>
+	
+		<div id="folderWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="4000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+					<span>Folder was uploaded</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+			</div>
+		</div>
+	
+		<div id="linkWasCopiedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="4000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+					<span>Link was copied to clipboard</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+			</div>
+		</div>
+		
+		<div id="addedToStarredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="4000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+					<span>Added to starred</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+			</div>
+		</div>
+		
+		<div id="removedFromStarredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="4000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+					<span>Removed from starred</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+			</div>
+		</div>
+		
+		<div id="movedToTrashMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
+			aria-atomic="true" data-bs-delay="4000">
+			<div class="d-flex">
+				<div class="toast-body d-flex align-items-center">
+					<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
+					<span>Moved to trash</span>
+				</div>
+				<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+			</div>
 		</div>
 	</div>
 	
-	<div id="folderUploadingErrorMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="5000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-error-circle me-1' style="font-size: 24px; color: darkred;"></i>
-				<span>An error occurred while loading the folder!</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-
-	<div id="folderWasUploadedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>Folder was uploaded</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-
-	<div id="linkWasCopiedMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>Link was copied to clipboard</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-	
-	<div id="addedToStarredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>Added to starred</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-	
-	<div id="removedFromStarredMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>Removed from starred</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-	
-	<div id="movedToTrashMsg" class="toast position-fixed bottom-0 end-0 m-3" role="alert" aria-live="assertive"
-		aria-atomic="true" data-bs-delay="4000">
-		<div class="d-flex">
-			<div class="toast-body d-flex align-items-center">
-				<i class='bx bx-check-circle me-1' style="font-size: 24px; color: aquamarine;"></i>
-				<span>Moved to trash</span>
-			</div>
-			<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
-		</div>
-	</div>
-
 	<!-- Modals -->
 
 	<div class="modal" tabindex="-1" id="createFolderModal">
@@ -361,7 +362,22 @@
 					<input id="newFilenameInput" class="form-control" placeholder="File name">
 					<div class="d-flex justify-content-end mt-3">
 						<button type="button" class="btn btn-secondary mx-2" data-bs-dismiss="modal">Cancel</button>
-						<button type="button" class="btn btn-primary" id="renameFileBtn">Rename</button>
+						<button type="button" class="btn btn-primary" id="renameFileBtn">Save</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="modal" tabindex="-1" id="renameFolderModal">
+		<div class="modal-dialog modal-dialog-centered modal-sm">
+			<div class="modal-content">
+				<div class="modal-body">
+					<h5 class="modal-title mb-3">Rename</h5>
+					<input id="newFoldernameInput" class="form-control" placeholder="Folder name">
+					<div class="d-flex justify-content-end mt-3">
+						<button type="button" class="btn btn-secondary mx-2" data-bs-dismiss="modal">Cancel</button>
+						<button type="button" class="btn btn-primary" id="renameFolderBtn">Save</button>
 					</div>
 				</div>
 			</div>
@@ -391,6 +407,33 @@
 						</tr>
 						<tr>
 							<td>Viewed:</td><td id="viewedInfo"></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="modal" tabindex="-1" id="folderInfoModal">
+		<div class="modal-dialog modal-dialog-centered modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="foldernameInfo"></h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+				</div>
+				<div class="modal-body">
+					<table class="table table-borderless">
+						<tr>
+							<td>Path:</td><td id="folderPathInfo"></td>
+						</tr>
+						<tr>
+							<td>Type:</td><td>Folder</td>
+						</tr>
+						<tr>
+							<td>Created:</td><td id="folderCreatedInfo"></td>
+						</tr>
+						<tr>
+							<td>Viewed:</td><td id="folderViewedInfo"></td>
 						</tr>
 					</table>
 				</div>
