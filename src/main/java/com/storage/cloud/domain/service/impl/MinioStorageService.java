@@ -102,6 +102,47 @@ public class MinioStorageService implements StorageService {
 		return new ObjectsDto(files, folders);
 	}
 
+	public ObjectsDto getObjectsByNameContains(String partOfName, User user) {
+		List<FileDto> files = new ArrayList<>();
+		Set<FolderDto> folders = new HashSet<>();
+		
+		String bucket = user.getId().toString();
+		
+		Iterable<Result<Item>> results = client.listObjects(
+			    ListObjectsArgs.builder()
+			    		.bucket(bucket)
+			    		.recursive(true)
+			    		.build()
+		);
+		
+		for (Result<Item> result : results) {
+			try {
+				String objectName = result.get().objectName();
+				
+				Map<String, String> meta = this.getObjectMeta(bucket, objectName);
+				
+				if (Boolean.parseBoolean(meta.get("is-trash"))) {
+					continue;
+				}
+				
+				if (objectName.endsWith("/")) {  // if ends with '/' its a folder
+					if (fileUtils.getFoldername(objectName).contains(partOfName)) { 
+						FolderDto dto = folderDtoMapper.map(bucket, objectName, meta);
+						folders.add(dto);
+					}
+				} else if (fileUtils.getFilename(objectName).contains(partOfName)) {
+					FileDto dto = fileDtoMapper.map(bucket, objectName, meta);
+					files.add(dto);
+				}
+			} catch (Exception e) {
+				log.error("Get by name: " + e.getLocalizedMessage());
+				throw new RuntimeException(e);
+			} 
+		}
+		
+		return new ObjectsDto(files, folders);
+	}
+	
 	public ObjectsDto getStarredObjects(User user) {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
@@ -378,7 +419,7 @@ public class MinioStorageService implements StorageService {
 
 	@Override
 	public String renameFile(String bucket, String objectName, String newFilename) {
-		String dir = fileUtils.getDir(objectName);
+		String dir = fileUtils.getPathTo(objectName);
 		String extension = fileUtils.getFileExtension(objectName);
 		
 		String newObjectName = dir + newFilename + "." + extension;
@@ -578,7 +619,7 @@ public class MinioStorageService implements StorageService {
 		String fullFilename = file.getOriginalFilename();
 		
 		if (fullFilename.contains("/"))
-			path += fileUtils.getDir(fullFilename);
+			path += fileUtils.getPathTo(fullFilename);
 		
 		String extension = fileUtils.getFileExtension(fullFilename);
 		

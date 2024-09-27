@@ -75,7 +75,7 @@ public class ObjectController {
     public ResponseEntity<Resource> downloadFile(@PathVariable String encodedObjectId) {
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
-		String filename = fileUtils.getFullFilename(objectId);
+		String filename = fileUtils.getFullFilename(objectId.name());
 		
 		InputStream inputStream = storageService.getFile(objectId.bucket(), objectId.name());
         return ResponseEntity.ok()
@@ -89,7 +89,7 @@ public class ObjectController {
 		System.out.println("in open file method: " + encodedObjectId);
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
-		String filename = fileUtils.getFullFilename(objectId);
+		String filename = fileUtils.getFullFilename(objectId.name());
 		String contentType = Files.probeContentType(Paths.get(filename));
 		
 		if (contentType == null) 
@@ -123,6 +123,12 @@ public class ObjectController {
 			storageService.updateLastViewedDate(user.getId().toString(), currentDir);
 		
 		return storageService.getObjectsFrom(currentDir, user);
+	}
+	
+	@GetMapping("/object/search")
+	public ObjectsDto searchObjectsByName(@RequestParam String partOfName, 
+										  @AuthenticationPrincipal User user) {
+		return storageService.getObjectsByNameContains(partOfName, user);
 	}
 	
 	@GetMapping("/object/starred")

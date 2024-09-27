@@ -21,13 +21,12 @@
 				<i class='bx bx-cloud'></i> Cloud store
 			</div>
 
-			<form class="d-flex" role="search">
-				<div class="input-group">
-					<input type="text" class="form-control form-control-lg" placeholder="Filename">
-					<button class="btn btn-outline-primary" type="button"><i class='bx bx-search'
-							style="font-size: 24px;"></i></button>
-				</div>
-			</form>
+			<div class="input-group w-25">
+				<span class="input-group-text">
+				    <i class='bx bx-search' style="font-size: 26px;"></i>
+				</span>
+				<input type="text" class="form-control form-control-lg" placeholder="Search in store" id="searchTrigger">
+			</div>
 
 			<div class="d-flex align-items-center">
 				<div class="nav-item d-flex me-2">
@@ -115,7 +114,7 @@
 
 					<div class="d-grid mb-1 gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="folders">
 						<!-- Invisible folder item. Used only to create new folder items -->
-						<div class="bg-dark d-flex p-2 rounded-4 d-none" id="folderItem">
+						<div class="position-relative bg-dark d-flex p-2 rounded-4 d-none" id="folderItem">
 							<i class='bx bx-folder mx-1' style="font-size: 28px;"></i>
 							<span class="flex-grow-1 mx-1 text-reset text-decoration-none fs-5"> Folder 1</span>
 							<div class="dropdown">
@@ -133,7 +132,12 @@
 												style="font-size: 20px;"></i> Delete</a></li>
 								</ul>
 							</div>
+							<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
+							    29 days
+							    <span class="visually-hidden">Days till deletion</span>
+							</span>
 						</div>
+						
 					</div>
 
 					<!-- Files -->
@@ -143,7 +147,7 @@
 
 					<div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="files">
 						<!-- Invisible file item. Used only to create new file items -->
-						<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4 d-none">
+						<div id='fileItem' class="position-relative bg-dark d-flex align-items-center p-2 rounded-4 d-none">
 							<i class='bx mx-1' style="font-size: 28px;"></i>
 							<span class="flex-grow-1 mx-1 fs-5 text-truncate text-reset text-decoration-none" 
 								style='max-width: 212.250px ;'>
@@ -164,6 +168,10 @@
 												style="font-size: 20px;"></i> Delete</a></li>
 								</ul>
 							</div>
+							<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
+							    29 days
+							    <span class="visually-hidden">Days till deletion</span>
+							</span>
 						</div>
 						<!-- End of the invisible file item.-->
 					</div>
@@ -196,5 +204,28 @@
 		</div>
 	</div>
 	
+	<!--  Modals -->
+	<div class="modal" tabindex="-1" id="searchModal">
+		<div class="modal-dialog modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="input-group">
+						<input type="text" class="form-control form-control-lg border-primary" placeholder="Search" id="search">
+					</div>
+				</div>
+				<div class="modal-body" id="searchResults"></div>
+				<div id="searchItem" class="d-flex w-100 my-2 d-none">
+					<i class='bx mx-1' style="font-size: 28px;"></i> 
+					<a class="flex-grow-1 mx-1 fs-5 text-truncate text-reset text-decoration-none open-link w-75" href="#">
+						object name
+					</a>
+					<a class="starred-link me-2" href="#"><i class='bx bx-star'
+											style="font-size: 24px;"></i> </a>
+					<a class="info-link" href="#"><i class='bx bx-info-circle'
+											style="font-size: 24px;"></i></a>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 </html>

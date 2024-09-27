@@ -21,13 +21,12 @@
 				<i class='bx bx-cloud'></i> Cloud store
 			</div>
 
-			<form class="d-flex" role="search">
-				<div class="input-group">
-					<input type="text" class="form-control form-control-lg" placeholder="Filename">
-					<button class="btn btn-outline-primary" type="button"><i class='bx bx-search'
-							style="font-size: 24px;"></i></button>
-				</div>
-			</form>
+			<div class="input-group w-25">
+				<span class="input-group-text">
+				    <i class='bx bx-search' style="font-size: 26px;"></i>
+				</span>
+				<input type="text" class="form-control form-control-lg" placeholder="Search in store" id="searchTrigger">
+			</div>
 
 			<div class="d-flex align-items-center">
 				<div class="nav-item d-flex me-2">
@@ -69,9 +68,9 @@
 	<hr class="m-0 border-2">
 
 	<div class="container-fluid">
-		<div class="row">
+		<div class="row vh-100">
 			<!-- Sidebar -->
-			<div class="col-2 d-flex flex-column border-end border-2 vh-100">
+			<div class="col-2 d-flex flex-column border-end border-2">
 				<!-- Add button dropdown -->
 				<div class="dropdown me-2 d-flex mt-2">
 					<button class="btn btn-secondary d-flex justify-content-start my-2" type="button"
@@ -206,7 +205,7 @@
 					<div class="d-grid gap-3 p-3" style="grid-template-columns: repeat(3, 1fr);" id="files">
 						<!-- Invisible file item. Used only to create new file items -->
 						<div id='fileItem' class="bg-dark d-flex align-items-center p-2 rounded-4 d-none">
-							<i class='bx mx-1' style="font-size: 28px;"></i>
+							<i class='bx mx-1' style="font-size: 28px;"></i> 
 							<a class="flex-grow-1 mx-1 fs-5 text-truncate text-reset text-decoration-none open-link" 
 								style='max-width: 212.250px ;' href="#">
 								Filename
@@ -339,6 +338,30 @@
 	
 	<!-- Modals -->
 
+	<div class="modal" tabindex="-1" id="searchModal">
+		<div class="modal-dialog modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div class="input-group">
+						<input type="text" class="form-control form-control-lg border-primary" placeholder="Search" id="search">
+					</div>
+				</div>
+				<div class="modal-body" id="searchResults"></div>
+				<div id="searchItem" class="d-flex w-100 my-2 d-none">
+					<i class='bx mx-1' style="font-size: 28px;"></i> 
+					<a class="flex-grow-1 mx-1 fs-5 text-truncate text-reset text-decoration-none open-link w-75" href="#">
+						object name
+					</a>
+					<a class="starred-link me-2" href="#"><i class='bx bx-star'
+											style="font-size: 24px;"></i> </a>
+					<a class="info-link" href="#"><i class='bx bx-info-circle'
+											style="font-size: 24px;"></i></a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
 	<div class="modal" tabindex="-1" id="createFolderModal">
 		<div class="modal-dialog modal-dialog-centered modal-sm">
 			<div class="modal-content">
@@ -442,5 +465,4 @@
 	</div>
 
 </body>
-
 </html>

@@ -3,7 +3,6 @@ package com.storage.cloud.domain.utils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.storage.cloud.domain.model.ObjectId;
 import com.storage.cloud.domain.service.ObjectIdEncodingService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,19 +17,12 @@ public class FileUtils {
 		return encodingService.encode(bucket, objectName);
 	}
 	
-	public String getFullFilename(ObjectId objectId) {
-		String objectName = objectId.name();
-		String[] path = objectName.split("/");
-		System.out.println("Full filename = " + path[path.length - 1]);
-		return path[path.length - 1];
-	}
-	
 	public String getFullFilename(String objectName) {
 		int i = objectName.lastIndexOf('/');
 		return objectName.substring(i+1, objectName.length());
 	}
 	
-	public String getDir(String objectName) {
+	public String getPathTo(String objectName) {
 		if (!objectName.contains("/"))
 			return "";
 		int lastBackslashIndex = objectName.lastIndexOf("/");

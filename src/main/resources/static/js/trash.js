@@ -4,13 +4,153 @@ const fileIcons = {
 	'pdf': {class: 'bxs-file-pdf', color: 'darkred'},
 	'png': {class: 'bxs-file-png', color: 'white'},
 	'jpg': {class: 'bxs-file-jpg', color: 'white'},
-	'html': {class: 'bxs-file-html', color: 'chocolate'}
+	'html': {class: 'bxs-file-html', color: 'chocolate'},
+	'js': {class: 'bxs-file-js', color: 'yellow'},
+	'css': {class: 'bxs-file-css', color: 'lightblue'},
+	'zip': {class: 'bxs-file-archive', color: 'lightyellow'}
+
 };
 
 $(document).ready(function () { 
 	
+	$('#searchTrigger').on('click', searchObjects);
+	
 	getTrashedObjectsInfoFromServer();
 })
+
+function searchObjects() {
+	$("#searchModal").modal('show');
+	
+	$('#search').focus();
+	
+	$('#search').on('input', function() {
+		var partOfName = $('#search').val().trim(); 
+		
+		if (partOfName.length < 2)
+			return;
+
+		$.ajax({
+	        url: '/api/object/search',
+	        method: 'GET',
+	        data: { partOfName: partOfName },
+	        success: function(response) {
+				$('#searchResults').empty(); 
+				console.log(JSON.stringify(response, null, 2));
+	           	for (const file of response.files) {
+					fileItem = $('#searchItem').clone();
+					
+					fileItem.removeAttr('id');
+					fileItem.removeClass("d-none");
+					
+					const openLink = '/api/open/file/' + file.encodedId;
+					
+					fileItem.find('a.open-link').attr('href', openLink);
+					fileItem.find('a.open-link').attr('target', '_blank');
+					fileItem.find('a.open-link').text(file.name);
+					
+					setUpFileIcon(fileItem, file.extension);
+					
+					var starredLink = fileItem.find('a.starred-link');
+					var starredLinkIcon = starredLink.find('i');
+					
+					if (file.starred) {
+						starredLinkIcon.addClass('bxs-star');
+						fileItem.data('is-starred', 'true');
+					} else {
+						starredLinkIcon.addClass('bx-star');
+						fileItem.data('is-starred', 'false');
+					}
+					
+					starredLink.on('click', function() {
+						if (fileItem.data('is-starred') === 'false') {
+							sendAddToStarredRequest(file.encodedId);
+							starredLinkIcon.removeClass('bx-star');
+							starredLinkIcon.addClass('bxs-star');
+						} else {
+							sendRemoveFromStarredRequest(file.encodedId);
+							starredLinkIcon.removeClass('bxs-star');
+							starredLinkIcon.addClass('bx-star');
+						}
+					});
+					
+					fileItem.find('a.info-link').on('click', function() {
+						$.ajax({
+					        url: '/api/object/meta/' + file.encodedId, 
+					        type: 'GET',
+							cache: false,
+					        success: function(meta) {
+								console.log(JSON.stringify(meta, null, 2));
+								const filename = fileItem.find('a.open-link').text();
+								$('#filenameInfo').text(filename);
+								$('#pathInfo').text(meta.path);
+								$('#typeInfo').text(meta.type);
+								$('#sizeInfo').text(meta.size);
+								$('#uploadedInfo').text(meta.uploaded);
+								$('#viewedInfo').text(meta.viewed);
+							}
+						});
+						$('#fileInfoModal').modal('show');
+					});
+					
+					$('#searchResults').prepend(fileItem);
+				}
+				for (const folder of response.folders) {
+					folderItem = $('#searchItem').clone();
+								
+					folderItem.removeAttr('id');
+					folderItem.removeClass("d-none");
+							
+					folderItem.find('a.open-link').attr('href', folder.link);
+					folderItem.find('a.open-link').text(folder.name);
+					
+					var starredLink = folderItem.find('a.starred-link');
+					var starredLinkIcon = starredLink.find('i');
+					
+					if (folder.starred) {
+						starredLinkIcon.addClass('bxs-star');
+						folderItem.data('is-starred', 'true');
+					} else {
+						starredLinkIcon.addClass('bx-star');
+						folderItem.data('is-starred', 'false');
+					}
+					
+					starredLink.on('click', function() {
+						if (folderItem.data('is-starred') === 'false') {
+							sendAddToStarredRequest(folder.encodedId);
+							starredLinkIcon.removeClass('bx-star');
+							starredLinkIcon.addClass('bxs-star');
+						} else {
+							sendRemoveFromStarredRequest(folder.encodedId);
+							starredLinkIcon.removeClass('bxs-star');
+							starredLinkIcon.addClass('bx-star');
+						}
+					});
+										
+					folderItem.find('a.info-link').off('click').on('click',function() {
+						$.ajax({
+					        url: '/api/object/meta/' + folder.encodedId, 
+					        type: 'GET',
+							cache: false,
+					        success: function(meta) {
+								console.log(JSON.stringify(meta, null, 2));
+								const foldername = folderItem.find('a.open-link').text();
+								$('#foldernameInfo').text(foldername);
+								$('#folderPathInfo').text(meta.path);
+								$('#folderCreatedInfo').text(meta.created);
+								$('#folderViewedInfo').text(meta.viewed);
+							}
+						});
+						$('#folderInfoModal').modal('show');
+					});
+					
+					folderItem.find('i').first().addClass('bx-folder');
+					
+					$('#searchResults').prepend(folderItem);
+				}
+	        }
+	    });
+	});
+}
 
 function getTrashedObjectsInfoFromServer() {
 	$.ajax({
@@ -49,7 +189,7 @@ function getTrashedObjectsInfoFromServer() {
 
 				setUpFolderCallbacks(folderItem, folder.encodedId);
 				
-				var foldername = folderItem.find('span');
+				var foldername = folderItem.find('span').first();
 				foldername.text(folder.name);
 				
 				$('#folders').prepend(folderItem);
