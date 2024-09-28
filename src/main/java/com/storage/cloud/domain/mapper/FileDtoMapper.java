@@ -20,10 +20,11 @@ public class FileDtoMapper {
 		String extension = fileUtils.getFileExtension(objectName);
 		String fileId = fileUtils.createEncodedObjectId(bucket, objectName);
 		boolean isStarred = Boolean.parseBoolean(meta.get("is-starred"));
+		String dateOfDeletion = meta.get("date-of-deletion");
 		
 		System.out.println("In mapper:filaname=%s, fileId=%s, is starred = %s".formatted(filename, fileId, isStarred));
 		
-		return new FileDto(fileId, filename, extension, isStarred);
+		return new FileDto(fileId, filename, extension, isStarred, dateOfDeletion);
 	}
 	
 }

@@ -21,7 +21,8 @@ public class FolderDtoMapper {
 		String foldername = tmp[tmp.length - 1];
 		String linkToFolder = "/main?path=" + objectName;
 		boolean isStarred = Boolean.parseBoolean(meta.get("is-starred"));
+		String dateOfDeletion = meta.get("date-of-deletion");
 		
-		return new FolderDto(encodedId, foldername, linkToFolder, isStarred);
+		return new FolderDto(encodedId, foldername, linkToFolder, isStarred, dateOfDeletion);
 	}
 }

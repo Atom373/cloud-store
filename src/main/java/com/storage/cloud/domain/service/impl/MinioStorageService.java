@@ -575,7 +575,7 @@ public class MinioStorageService implements StorageService {
 		Map<String, String> updatedMeta = this.getMetaWithStandardKeyNames(meta);
 		
 		updatedMeta.put("x-amz-meta-is-trash", isTrash.toString()); 
-		updatedMeta.put("x-amz-meta-added-to-trash-date", this.getCurrentDate()); 
+		updatedMeta.put("x-amz-meta-date-of-deletion", this.getDateOfDeletion()); 
 		
 		System.out.println("Trash status: new meta is: " + updatedMeta);
 		
@@ -653,6 +653,11 @@ public class MinioStorageService implements StorageService {
 		LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         return currentDate.format(formatter);
+	}
+	
+	private String getDateOfDeletion() {
+		LocalDate dateOfDeletion = LocalDate.now().plusDays(30); // object will be deleted after 30 days after being trashed
+		return dateOfDeletion.toString();
 	}
 
 	private Set<String> collectAllFolders(MultipartFile[] files) {

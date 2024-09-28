@@ -1,4 +1,4 @@
-package com.storage.cloud.domain.config;
+package com.storage.cloud.domain.service.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

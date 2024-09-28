@@ -177,6 +177,15 @@ function getTrashedObjectsInfoFromServer() {
 				
 				fileItem.find('span').text(file.name);
 				
+				var dateOfDeletion = new Date(file.dateOfDeletion);
+				var differenceInMilliseconds = dateOfDeletion - new Date();
+				var daysTillDeletion = Math.ceil(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+				
+				if (daysTillDeletion % 10 === 1)
+					fileItem.find('span.badge').text(daysTillDeletion + ' day');
+				else
+					fileItem.find('span.badge').text(daysTillDeletion + ' days');
+				
 				setUpFileIcon(fileItem, file.extension);
 				
 				$('#files').prepend(fileItem);
@@ -191,6 +200,15 @@ function getTrashedObjectsInfoFromServer() {
 				
 				var foldername = folderItem.find('span').first();
 				foldername.text(folder.name);
+				
+				var dateOfDeletion = new Date(folder.dateOfDeletion);
+				var differenceInMilliseconds = dateOfDeletion - new Date();
+				var daysTillDeletion = Math.ceil(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+				
+				if (daysTillDeletion % 10 === 1)
+					folderItem.find('span.badge').text(daysTillDeletion + ' day');
+				else
+					folderItem.find('span.badge').text(daysTillDeletion + ' days');
 				
 				$('#folders').prepend(folderItem);
 			}
