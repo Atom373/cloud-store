@@ -1,0 +1,48 @@
+version: "1.0"
+
+services:
+  backend:
+    image: cloud-store
+    container_name: cloud-store
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    depends_on:
+      - db
+      - redis
+      - minio
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cloud_store
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+    command: server /data
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:

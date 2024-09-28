@@ -199,13 +199,13 @@ function getStarredObjectsInfoFromServer() {
     });
 }
 
-function setUpFileCallbacks(fileItem, fileId) {
-	console.log(fileId);
-	const link = '/api/download/file/' + fileId;
+function setUpFileCallbacks(fileItem, encodedFileId) {
+	console.log(encodedFileId);
+	const link = '/api/download/file/' + encodedFileId;
 	//console.log(link);
 	
 	const openLink = fileItem.find('a.open-link');
-	openLink.attr('href', '/api/open/file/' + fileId);
+	openLink.attr('href', '/api/open/file/' + encodedFileId);
 	openLink.attr('target', '_blank');
 	
 	fileItem.find('a.download-link').attr('href', link);
@@ -217,7 +217,7 @@ function setUpFileCallbacks(fileItem, fileId) {
 	
 	fileItem.find('a.info-link').off('click').on('click',function() {
 		$.ajax({
-	        url: '/api/object/meta/' + fileId, 
+	        url: '/api/object/meta/' + encodedFileId, 
 	        type: 'GET',
 			cache: false,
 	        success: function(meta) {
@@ -245,7 +245,7 @@ function setUpFileCallbacks(fileItem, fileId) {
 			
 			openLink.text(newFilename);
 			
-			sendRenameFileRequest(fileId, newFilename, fileItem);
+			sendRenameFileRequest(encodedFileId, newFilename, fileItem);
 			
 			$('#renameFileModal').modal('hide');
 		});
@@ -256,17 +256,20 @@ function setUpFileCallbacks(fileItem, fileId) {
 		if ($('#files').children().length - 1 === 0) {
 			$('#noFilesLabel').removeClass("d-none");
 		}
-		sendRemoveFromStarredRequest(fileId, $(this));
+		sendRemoveFromStarredRequest(encodedFileId, $(this));
 		$('#removedFromStarredMsg').toast('show');
 	});
 	
 	fileItem.find('a.trash-link').off('click').on('click',function() {
 		fileItem.remove();
+		if ($('#files').children().length - 1 === 0) {
+			$('#noFilesLabel').removeClass("d-none");
+		}
 		sendAddToTrashRequest(encodedFileId);
 	});
 }
 
-function sendRemoveFromStarredRequest(objectId, starredLink) {
+function sendRemoveFromStarredRequest(objectId) {
 	$.ajax({
         url: '/api/starred/remove/' + objectId, 
         type: 'POST',
@@ -276,9 +279,9 @@ function sendRemoveFromStarredRequest(objectId, starredLink) {
     });
 }
 
-function sendAddToTrashRequest(encodedFileId) {
+function sendAddToTrashRequest(encodedId) {
 	$.ajax({
-        url: '/api/trash/add/' + encodedFileId, 
+        url: '/api/trash/add/' + encodedId, 
         type: 'POST',
 		success: function() {
 			$('#movedToTrashMsg').toast('show');

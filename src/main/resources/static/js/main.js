@@ -72,14 +72,14 @@ function searchObjects() {
 					
 					if (file.starred) {
 						starredLinkIcon.addClass('bxs-star');
-						fileItem.data('is-starred', 'true');
+						fileItem.data('is-starred', true);
 					} else {
 						starredLinkIcon.addClass('bx-star');
-						fileItem.data('is-starred', 'false');
+						fileItem.data('is-starred', false);
 					}
 					
 					starredLink.on('click', function() {
-						if (fileItem.data('is-starred') === 'false') {
+						if (fileItem.data('is-starred') === false) {
 							sendAddToStarredRequest(file.encodedId);
 							starredLinkIcon.removeClass('bx-star');
 							starredLinkIcon.addClass('bxs-star');
@@ -125,14 +125,14 @@ function searchObjects() {
 					
 					if (folder.starred) {
 						starredLinkIcon.addClass('bxs-star');
-						folderItem.data('is-starred', 'true');
+						folderItem.data('is-starred', true);
 					} else {
 						starredLinkIcon.addClass('bx-star');
-						folderItem.data('is-starred', 'false');
+						folderItem.data('is-starred', false);
 					}
 					
 					starredLink.on('click', function() {
-						if (folderItem.data('is-starred') === 'false') {
+						if (folderItem.data('is-starred') === false) {
 							sendAddToStarredRequest(folder.encodedId);
 							starredLinkIcon.removeClass('bx-star');
 							starredLinkIcon.addClass('bxs-star');
@@ -195,10 +195,12 @@ function getObjectsInfoFromServer() {
 				
 				if (file.starred) {
 					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
-					starredLink.data('is-starred', 'true');
+					starredLink.data('is-starred', true);
+					console.log("Setting starred: " + starredLink.data('is-starred'));
 				} else {
 					starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
-					starredLink.data('is-starred', 'false');
+					starredLink.data('is-starred', false);
+					console.log("Setting starred: " + starredLink.data('is-starred'));
 				}
 				
 				setUpFileCallbacks(fileItem, file.encodedId);
@@ -221,10 +223,10 @@ function getObjectsInfoFromServer() {
 				
 				if (folder.starred) {
 					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
-					starredLink.data('is-starred', 'true');
+					starredLink.data('is-starred', true);
 				} else {
 					starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
-					starredLink.data('is-starred', 'false');
+					starredLink.data('is-starred', false);
 				}
 				
 				var link = folderItem.find('a').first();
@@ -295,7 +297,8 @@ function setUpFileCallbacks(fileItem, encodedFileId) {
 	});
 	
 	fileItem.find('a.starred-link').off('click').on('click',function() {
-		if ($(this).data('is-starred') === 'false') {
+		console.log("Is starred: " + $(this).data('is-starred'));
+		if ($(this).data('is-starred') === false) {
 			sendAddToStarredRequest(encodedFileId, $(this));
 			$('#addedToStarredMsg').toast('show');
 		} else {
@@ -333,7 +336,7 @@ function sendAddToStarredRequest(encodedId, starredLink) {
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
-			starredLink.data('is-starred', 'true');
+			starredLink.data('is-starred', true);
 		},
 		error: function(response) {
 			console.log(response);
@@ -347,7 +350,7 @@ function sendRemoveFromStarredRequest(encodedId, starredLink) {
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
-			starredLink.data('is-starred', 'false');
+			starredLink.data('is-starred', false);
 		},
 		error: function(response) {
 			console.log(response);
@@ -384,6 +387,8 @@ function addNewFileItem(event) {
 	
 	var dropdown = fileItem.find('div.dropdown');
 	var spiner = fileItem.find('div.spinner-border');
+	
+	fileItem.find('a.starred-link').data('is-starred', false);
 	
 	function onUploadingSuccess(fileUploadingResponse) {
 		console.log("After uploading: " + JSON.stringify(fileUploadingResponse, null, 2));
@@ -500,6 +505,8 @@ function addNewFolderItem() {
 	var dropdown = folderItem.find('div.dropdown');
 	var spiner = folderItem.find('div.spinner-border');
 	
+	folderItem.find('a.starred-link').data('is-starred', false);
+	
 	function onUploadingSuccess(folderUploadingResponse) {
 		console.log("After uploading: " + JSON.stringify(folderUploadingResponse, null, 2));
 		setUpFolderCallbacks(folderItem, folderUploadingResponse.encodedId, folderUploadingResponse.linkToFolder);
@@ -585,7 +592,7 @@ function setUpFolderCallbacks(folderItem, encodedFolderId, linkToFolder) {
 	});
 	
 	folderItem.find('a.starred-link').off('click').on('click',function() {
-		if ($(this).data('is-starred') === 'false') {
+		if ($(this).data('is-starred') === false) {
 			sendAddToStarredRequest(encodedFolderId, $(this));
 			$('#addedToStarredMsg').toast('show');
 		} else {

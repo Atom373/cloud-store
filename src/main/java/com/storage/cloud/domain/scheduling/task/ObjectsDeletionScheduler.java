@@ -29,7 +29,7 @@ public class ObjectsDeletionScheduler {
 	private final MinioStorageService storageService;
 	
 	@Scheduled(cron = "0 0 23 * * ?")
-	@Scheduled(fixedDelayString = "PT1M")
+	//@Scheduled(fixedDelayString = "PT1M")
 	public void deleteOldTrashedObjects() {
 		String currentDate = LocalDate.now().toString();
 		System.out.println("Current date is: " + currentDate);

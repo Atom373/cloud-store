@@ -168,6 +168,18 @@ function getRecentlyViewedFilesInfoFromServer() {
 				fileItem.find('div.spinner-border').remove();
 				fileItem.find('div.dropdown').removeClass("d-none");
 				
+				var starredLink = fileItem.find('a.starred-link');
+								
+				if (file.starred) {
+					starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
+					starredLink.data('is-starred', true);
+					console.log("Setting starred: " + starredLink.data('is-starred'));
+				} else {
+					starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
+					starredLink.data('is-starred', false);
+					console.log("Setting starred: " + starredLink.data('is-starred'));
+				}
+				
 				setUpFileCallbacks(fileItem, file.encodedId);
 				
 				fileItem.find('a.open-link').text(file.name);
@@ -236,7 +248,7 @@ function setUpFileCallbacks(fileItem, fileId) {
 	});
 	
 	fileItem.find('a.starred-link').off('click').on('click',function() {
-		if ($(this).data('is-starred') === 'false') {
+		if ($(this).data('is-starred') === false) {
 			sendAddToStarredRequest(fileId, $(this));
 			$('#addedToStarredMsg').toast('show');
 		} else {
@@ -247,7 +259,10 @@ function setUpFileCallbacks(fileItem, fileId) {
 	
 	fileItem.find('a.trash-link').off('click').on('click',function() {
 		fileItem.remove();
-		sendAddToTrashRequest(encodedFileId);
+		if ($('#files').children().length - 1 === 0) {
+			$('#noFilesLabel').removeClass("d-none");
+		}
+		sendAddToTrashRequest(fileId);
 	});
 }
 
@@ -271,7 +286,21 @@ function sendAddToStarredRequest(fileId, starredLink) {
         type: 'POST',
 		success: function() {
 			starredLink.html('<i class="bx bxs-star" style="font-size: 20px;"></i> Remove from starred');
-			starredLink.data('is-starred', 'true');
+			starredLink.data('is-starred', true);
+		},
+		error: function(response) {
+			console.log(response);
+		}
+    });
+}
+
+function sendRemoveFromStarredRequest(encodedId, starredLink) {
+	$.ajax({
+        url: '/api/starred/remove/' + encodedId, 
+        type: 'POST',
+		success: function() {
+			starredLink.html('<i class="bx bx-star" style="font-size: 20px;"></i> Add to starred');
+			starredLink.data('is-starred', false);
 		},
 		error: function(response) {
 			console.log(response);
