@@ -615,11 +615,13 @@ public class MinioStorageService implements StorageService {
 	private Map<String, String> createMetadataFor(MultipartFile file, String directory) {
 		Map<String, String> meta = new HashMap<>();
 		
-		String path = directory.isEmpty() ? "My Drive" : directory;
+		String path;
 		String fullFilename = file.getOriginalFilename();
 		
 		if (fullFilename.contains("/"))
-			path += fileUtils.getPathTo(fullFilename);
+			path = fileUtils.getPathTo(fullFilename);
+		else
+			path = directory.isEmpty() ? "My Drive" : directory;
 		
 		String extension = fileUtils.getFileExtension(fullFilename);
 		
@@ -637,7 +639,10 @@ public class MinioStorageService implements StorageService {
 	private Map<String, String> createMetadataFor(String foldername, String directory) {
 		Map<String, String> meta = new HashMap<>();
 		
-		String path = directory.isEmpty() ? "My Drive" : directory;
+		String path = fileUtils.getPathToLastFolder(foldername);
+		
+		if (path.isEmpty())
+			path = "My Drive";
 		
 		meta.put("x-amz-meta-path", path);
 		meta.put("x-amz-meta-type", "Folder");
