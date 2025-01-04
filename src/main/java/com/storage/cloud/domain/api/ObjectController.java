@@ -120,7 +120,7 @@ public class ObjectController {
 		String currentDir = (String) session.getAttribute("currentDir");
 		
 		if (!currentDir.isEmpty())
-			storageService.updateLastViewedDate(user.getId().toString(), currentDir);
+			storageService.updateLastViewedDate(user.getBucketName(), currentDir);
 		
 		return storageService.getObjectsFrom(currentDir, user);
 	}

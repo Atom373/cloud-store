@@ -1,5 +1,6 @@
 package com.storage.cloud.security.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
@@ -25,7 +26,7 @@ public class RegistrationController {
 	
 	private final RegistrationServiceFacade registrationService;
 	private final StorageService storageService;
-
+	
 	@GetMapping
 	public String registrationPage(Model model) {
 		model.addAttribute("registrationForm", new RegistrationForm("", ""));

@@ -29,6 +29,7 @@ import com.storage.cloud.domain.utils.FileUtils;
 import com.storage.cloud.security.model.User;
 import com.storage.cloud.security.service.UserService;
 
+import io.minio.BucketExistsArgs;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.GetObjectArgs;
@@ -44,9 +45,9 @@ import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class MinioStorageService implements StorageService {
 
 	private final MinioClient client;
@@ -66,7 +67,7 @@ public class MinioStorageService implements StorageService {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
 		
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
@@ -106,7 +107,7 @@ public class MinioStorageService implements StorageService {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
 		
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
@@ -147,7 +148,7 @@ public class MinioStorageService implements StorageService {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
 		
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
@@ -190,7 +191,7 @@ public class MinioStorageService implements StorageService {
 	public List<FileDto> getRecentlyViewedFiles(User user) {
 		List<SortableByViewedDto<FileDto>> files = new ArrayList<>();
 		
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
@@ -202,7 +203,7 @@ public class MinioStorageService implements StorageService {
 		for (Result<Item> result : results) {
 			try {
 				String objectName = result.get().objectName();
-				System.out.println("Recent: obj name = " + objectName);
+				log.trace("Recent: obj name = " + objectName);
 				Map<String, String> meta = this.getObjectMeta(bucket, objectName);
 				
 				String lastViewed = meta.get("viewed");
@@ -214,7 +215,7 @@ public class MinioStorageService implements StorageService {
 				if (lastViewed == null || lastViewed.equals("-"))
 					continue; 
 				
-				System.out.println("Recent: viewed = " + lastViewed);
+				log.trace("Recent: viewed = " + lastViewed);
 				if (!objectName.endsWith("/")) { // if doesn't end with '/' its a file
 					FileDto dto = fileDtoMapper.map(bucket, objectName, meta);
 					files.add(new SortableByViewedDto<FileDto>(dto, lastViewed));
@@ -237,7 +238,7 @@ public class MinioStorageService implements StorageService {
 		List<FileDto> files = new ArrayList<>();
 		Set<FolderDto> folders = new HashSet<>();
 		
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
@@ -342,7 +343,7 @@ public class MinioStorageService implements StorageService {
 		try {
 			client.makeBucket(
 				MakeBucketArgs.builder()
-					.bucket(user.getId().toString())
+					.bucket(user.getBucketName())
 					.build()
 			);
 		} catch (Exception e) {
@@ -361,7 +362,7 @@ public class MinioStorageService implements StorageService {
         try {
 			client.putObject(
 			    PutObjectArgs.builder()
-			        .bucket(user.getId().toString())
+			        .bucket(user.getBucketName())
 			        .object(folderObject)
 			        .stream(new ByteArrayInputStream(new byte[0]), 0, -1)
 			        .headers(meta)
@@ -376,7 +377,7 @@ public class MinioStorageService implements StorageService {
 	@Override
 	public String save(MultipartFile file, String directory, User user){
 		String fileObject = directory + file.getOriginalFilename();
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		Map<String, String> meta = this.createMetadataFor(file, directory);
 		try {
 			client.putObject(
@@ -399,7 +400,7 @@ public class MinioStorageService implements StorageService {
 		Set<String> foldersToCreate = this.collectAllFolders(files);
 		List<String> paths = new ArrayList<>();
 		
-		String bucket = user.getId().toString();
+		String bucket = user.getBucketName();
 		String folderObject = directory + fileUtils.getBaseDir(files[0]);
 		
 		long overallSize = 0;
@@ -423,7 +424,7 @@ public class MinioStorageService implements StorageService {
 		String extension = fileUtils.getFileExtension(objectName);
 		
 		String newObjectName = dir + newFilename + "." + extension;
-		System.out.println("newObjectName="+newObjectName);
+		log.trace("newObjectName="+newObjectName);
 		try {
 			client.copyObject(
 	            CopyObjectArgs.builder()
@@ -452,8 +453,8 @@ public class MinioStorageService implements StorageService {
 	public String renameFolder(String bucket, String directory, String newFoldername) {
 
 		String newDirectory = fileUtils.getPathToLastFolder(directory) + newFoldername + "/";
-		System.out.println("Current dir is : " + directory);
-		System.out.println("New dir is : " + newDirectory);
+		log.trace("Current dir is : " + directory);
+		log.trace("New dir is : " + newDirectory);
 		
 		Iterable<Result<Item>> results = client.listObjects(
 			    ListObjectsArgs.builder()
@@ -468,8 +469,8 @@ public class MinioStorageService implements StorageService {
 				String objectName = result.get().objectName();
 				String newObjectName = newDirectory + objectName.substring(directory.length(), objectName.length());
 				
-				System.out.println("Old obj name = " + objectName);
-				System.out.println("New obj name = " + newObjectName);
+				log.trace("Old obj name = " + objectName);
+				log.trace("New obj name = " + newObjectName);
 				
 				client.copyObject(
 		            CopyObjectArgs.builder()
@@ -509,7 +510,7 @@ public class MinioStorageService implements StorageService {
 			);
 			for (Result<Item> result : results) {
 				objectSize += result.get().size();
-				System.out.println("In get obj size: name = " + result.get().objectName() + ", size = " + result.get().size());
+				log.trace("In get obj size: name = " + result.get().objectName() + ", size = " + result.get().size());
 				client.removeObject(
 	                    RemoveObjectArgs.builder()
 	                            .bucket(bucket)  
@@ -536,7 +537,7 @@ public class MinioStorageService implements StorageService {
 		
 		updatedMeta.put("x-amz-meta-viewed", newViewedDate); 
 		
-		System.out.println("new meta is: " + updatedMeta);
+		log.trace("new meta is: " + updatedMeta);
 		
 		this.updateMeta(bucket, objectName, updatedMeta);
 	}
@@ -564,7 +565,7 @@ public class MinioStorageService implements StorageService {
 		
 		updatedMeta.put("x-amz-meta-is-starred", isStarred.toString()); 
 		
-		System.out.println("new meta is: " + updatedMeta);
+		log.trace("new meta is: " + updatedMeta);
 		
 		this.updateMeta(bucket, objectName, updatedMeta);
 	}
@@ -577,7 +578,7 @@ public class MinioStorageService implements StorageService {
 		updatedMeta.put("x-amz-meta-is-trash", isTrash.toString()); 
 		updatedMeta.put("x-amz-meta-date-of-deletion", this.getDateOfDeletion()); 
 		
-		System.out.println("Trash status: new meta is: " + updatedMeta);
+		log.trace("Trash status: new meta is: " + updatedMeta);
 		
 		this.updateMeta(bucket, objectName, updatedMeta);
 	}
@@ -672,7 +673,7 @@ public class MinioStorageService implements StorageService {
 				directories.add(directory);
 			}
 		}
-		System.out.println("Dirs are : " + directories);
+		log.trace("Dirs are : " + directories);
 		return directories;
 	}
 }
