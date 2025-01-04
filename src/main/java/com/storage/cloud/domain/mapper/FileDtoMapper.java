@@ -8,7 +8,9 @@ import com.storage.cloud.domain.dto.FileDto;
 import com.storage.cloud.domain.utils.FileUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class FileDtoMapper {
@@ -22,7 +24,7 @@ public class FileDtoMapper {
 		boolean isStarred = Boolean.parseBoolean(meta.get("is-starred"));
 		String dateOfDeletion = meta.get("date-of-deletion");
 		
-		System.out.println("In mapper:filaname=%s, fileId=%s, is starred = %s".formatted(filename, fileId, isStarred));
+		log.debug("In mapper:filaname=%s, fileId=%s, is starred = %s".formatted(filename, fileId, isStarred));
 		
 		return new FileDto(fileId, filename, extension, isStarred, dateOfDeletion);
 	}

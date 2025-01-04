@@ -41,7 +41,9 @@ import com.storage.cloud.security.model.User;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -86,7 +88,7 @@ public class ObjectController {
 	
 	@GetMapping("/open/file/{encodedObjectId}") // object Id consists of bucket name and object name
     public ResponseEntity<Resource> openFile(@PathVariable String encodedObjectId) throws IOException {
-		System.out.println("in open file method: " + encodedObjectId);
+		log.debug("in open file method: " + encodedObjectId);
 		ObjectId objectId = encodingService.decode(encodedObjectId);
 		
 		String filename = fileUtils.getFullFilename(objectId.name());
@@ -226,7 +228,7 @@ public class ObjectController {
 		String newDirectory = storageService.renameFolder(objectId.bucket(), objectId.name(), newFoldername);
 		String linkToFolder = "/main?path=" + newDirectory;
 		String enocdedId = fileUtils.createEncodedObjectId(objectId.bucket(), newDirectory);
-		System.out.println("New link is : " + linkToFolder);
+		log.debug("New link is : " + linkToFolder);
 		return new FolderRenamingResponse(enocdedId, linkToFolder);
 	}
 }

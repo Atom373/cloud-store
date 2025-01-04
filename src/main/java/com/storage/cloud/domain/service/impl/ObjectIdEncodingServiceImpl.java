@@ -21,13 +21,11 @@ public class ObjectIdEncodingServiceImpl implements ObjectIdEncodingService {
 	@Override
 	public String encode(String bucket, String objectName) {
 		String fileId = bucket + ':' + objectName;
-		//System.out.println("in encode: " + encoder.encodeToString(fileId.getBytes()));
 		return encoder.encodeToString(fileId.getBytes());
 	}
 
 	@Override
 	public ObjectId decode(String encodedFileId) {
-		//System.out.println("in decode: " + encodedFileId);
 		String decodedFileId = new String(decoder.decode(encodedFileId));
 		String[] tmp = decodedFileId.split(":");
 		return new ObjectId(tmp[0], tmp[1]);
