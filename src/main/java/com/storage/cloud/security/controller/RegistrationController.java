@@ -25,7 +25,7 @@ public class RegistrationController {
 	
 	private final RegistrationServiceFacade registrationService;
 	private final StorageService storageService;
-
+	
 	@GetMapping
 	public String registrationPage(Model model) {
 		model.addAttribute("registrationForm", new RegistrationForm("", ""));

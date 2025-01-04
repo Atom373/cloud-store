@@ -59,6 +59,12 @@
 		</form>
 
 		<p class="text-center">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+		<hr>
+		<a th:href="@{/oauth2/authorization/google}"
+		class="btn btn-dark border border-light w-100 d-flex align-items-center justify-content-center">
+			<i class='bx bxl-google me-1' style="font-size: 24px;"></i> 
+			<span>Login with Google</span>
+		</a>
 	</div>
 </body>
 </html>

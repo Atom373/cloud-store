@@ -21,7 +21,6 @@ public class UserService {
 	
 	public boolean isUnique(String username) {
 		boolean isMember = redisTemplate.opsForSet().isMember(USERNAMES_KEY, username);
-		System.out.println(username + " is member = " + isMember);
 		return !isMember;
 	}
 

@@ -3,29 +3,53 @@ server:
     session:
       timeout: 24h
 
+remember-me:
+  key: la2e30sawl8kd6kw
+
 spring:
   application:
     name: cloud-storage
+    
   thymeleaf:
     cache: false
+    
   servlet:
     multipart:
       enabled: true
       max-file-size: 100MB
       max-request-size: 500MB
+      
   redis:
     host: localhost
-    port: 6379    
+    port: 6379 
+       
   datasource:
     url: jdbc:postgresql://localhost:5432/cloud_store
     username: postgres
     password: 1234
     driver-class-name: org.postgresql.Driver
+    
   jpa:
     hibernate:
       ddl-auto: update # Hibernate ddl auto (create, create-drop, validate, update)
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        
-        
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 353430846761-945qsabb82rufehc7065vfki1a16heto.apps.googleusercontent.com
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub

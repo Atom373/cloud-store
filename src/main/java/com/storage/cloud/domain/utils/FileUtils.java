@@ -6,7 +6,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.storage.cloud.domain.service.ObjectIdEncodingService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class FileUtils {
@@ -49,7 +51,7 @@ public class FileUtils {
 	}
 	
 	public String getFilename(String objectName) {
-		System.out.println("in get filename = "+objectName);
+		log.debug("in get filename = "+objectName);
 		int lastDotIndex = objectName.lastIndexOf('.');
 		int lastBackslashIndex = objectName.lastIndexOf('/');
 		if (lastDotIndex != -1 && lastDotIndex > lastBackslashIndex)
