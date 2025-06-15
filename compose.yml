@@ -2,7 +2,7 @@ version: "1.0"
 
 services:
   backend:
-    image: cloud-store
+    build: .
     container_name: cloud-store
     ports:
       - "8080:8080"
@@ -11,6 +11,7 @@ services:
       MINIO_URL: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
     depends_on:
       - db
       - redis
