@@ -9,7 +9,7 @@ This project represents a Google Drive like cloud file storage.
 - Redis (for caching), 
 - Spring (MVC, Data JPA, Security)
 
-## How to run this project on your PC
+## How to run this app on your PC
 
 NOTE: if you want to use Google Login, you have to set up Google OAuth Client Secret variable.
 
